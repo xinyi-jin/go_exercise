@@ -13,32 +13,29 @@ import "fmt"
 链接：https://leetcode-cn.com/problems/subarray-sum-equals-k
 著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。 */
 
+// 560. 和为K的子数组
 func subarraySum(nums []int, k int) int {
-	if len(nums) == 1 && nums[0] == k {
-		return 1
-	}
-	sum, count := 0, 0
-	for i := 0; i < len(nums); i++ {
-		for _, v := range nums {
-			sum += v
+	count := 0 //计数
+	for {
+		sum := 0 //统计目前连续数组的和
+		for i := 0; i < len(nums); i++ {
+			sum += nums[i]
 			if sum == k {
 				count++
-				break
 			}
 		}
-		if nums[i] == k {
-			count++
+		// 退出循环
+		if len(nums) == 1 {
+			break
 		}
-		// 重置循环条件
-		i = 0
-		sum = 0
 		nums = nums[1:]
 	}
 	return count
 }
 
 func main() {
-	str := []int{1}
-	res := subarraySum(str, 1)
+	// str := []int{1, 1, 1, 1}
+	str := []int{28, 54, 7, -70, 22, 65, -6}
+	res := subarraySum(str, 100)
 	fmt.Println(res)
 }
