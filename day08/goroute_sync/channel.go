@@ -35,6 +35,7 @@ func main() {
 		go calc(intChan, resultChan, exitChan)
 	}
 
+	// 等待所有的goroutine全部退出
 	go func() {
 		for i := 0; i < 8; i++ {
 			<-exitChan

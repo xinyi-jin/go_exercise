@@ -18,7 +18,8 @@ type User struct {
 func main() {
 	// TestStruct()
 	// TestInt()
-	TestMap()
+	// TestMap()
+	TestSlice()
 
 }
 
@@ -62,4 +63,24 @@ func TestMap() {
 		fmt.Println("json marshal err", err)
 	}
 	fmt.Println("int json :", string(i))
+}
+
+func TestSlice() {
+	var s []map[string]interface{}
+	var m map[string]interface{}
+	m = make(map[string]interface{})
+	m["name"] = "zhuhe"
+	m["age"] = 22
+	s = append(s, m)
+
+	m["name"] = "jinxinyi"
+	m["age"] = "22"
+	s = append(s, m)
+
+	i, err := json.Marshal(s)
+	if err != nil {
+		fmt.Println("json marshal err", err)
+	}
+	fmt.Println("slice json :", string(i))
+
 }

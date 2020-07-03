@@ -24,4 +24,21 @@ func main() {
 		return
 	}
 	fmt.Println(stu02)
+
+	var mapChan chan map[string]string
+
+	mapChan = make(chan map[string]string, 10)
+
+	m := make(map[string]string, 10)
+	for i := 0; i < 10; i++ {
+		s := fmt.Sprintf("%ds", i)
+		m[s] = s + "00"
+	}
+
+	var mm map[string]string
+	mm = make(map[string]string, 5)
+	mapChan <- m
+	mm = <-mapChan
+
+	fmt.Println("mm", mm)
 }
