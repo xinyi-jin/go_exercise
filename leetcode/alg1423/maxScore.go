@@ -39,8 +39,12 @@ func maxScore(cardPoints []int, k int) int {
 	windowsSize := n - k
 
 	sum := 0
-	for _, v := range cardPoints[:windowsSize] {
-		sum += v
+	total := 0
+	for i, v := range cardPoints {
+		if i < windowsSize {
+			sum += v
+		}
+		total += v
 	}
 	minSum := sum
 	for i := windowsSize; i < n; i++ {
@@ -48,10 +52,7 @@ func maxScore(cardPoints []int, k int) int {
 		sum += cardPoints[i] - cardPoints[i-windowsSize]
 		minSum = min(minSum, sum)
 	}
-	total := 0
-	for _, v := range cardPoints {
-		total += v
-	}
+
 	return total - minSum
 }
 func min(a, b int) int {
