@@ -222,9 +222,9 @@ func AllPokerConbine(pokerData []*Poker, handPokerNum int) {
 
 				if _, ok := PokerLogicValueMap[hplv]; !ok {
 					PokerLogicValueMap[hplv] = pokers
-				} else {
-					// fmt.Fprintf(file, "==== %d %d %s", hplv, hpt, PokerDataInfo(PokerLogicValueMap[hplv]))
-				}
+				} /* else {
+					fmt.Fprintf(file, "==== %d %d %s %s", hplv, hpt, PokerDataInfo(PokerLogicValueMap[hplv]), PokerDataInfo(pokers))
+				} */
 				pos += 1 // 统计牌型总数
 			}
 		}
@@ -233,7 +233,7 @@ func AllPokerConbine(pokerData []*Poker, handPokerNum int) {
 	// for range PokerLogicValueMap {
 	// 	cnt++
 	// }
-	HandPokerLogicValueInfo(PokerLogicValueMap)
+	// HandPokerLogicValueInfo(PokerLogicValueMap)
 	fmt.Println("AllPokerConbine pos", pos)
 	fmt.Println("PokerLogicValueMap cnt ", len(PokerLogicValueMap)) // 牌力 牌型映射数量
 }
@@ -273,7 +273,7 @@ func CalcHandPokerType(pokerData []*Poker, handPokerNum int) int {
 	return POKERTYPE_UNKNOW
 }
 
-// CalcHandPokerLogicValue 计算手牌牌力值  9-12位 存储牌型 1-8位 存储牌值 牌值=牌型+花色
+// CalcHandPokerLogicValue 计算手牌牌力值  13-16位 存储牌型 1-12位 存储牌值 牌值=牌型+花色
 func CalcHandPokerLogicValue(pokerData []*Poker, handPokerNum, handPokerType int) int64 {
 	var logicValue int64
 	pokerDataTemp := make([]*Poker, handPokerNum)
@@ -286,16 +286,16 @@ func CalcHandPokerLogicValue(pokerData []*Poker, handPokerNum, handPokerType int
 		PokerDataSortDuiZi(pokerDataTemp, handPokerNum)
 		fallthrough
 	case POKERTYPE_BAOZI, POKERTYPE_SHUNJIN, POKERTYPE_JINHUA, POKERTYPE_SHUNZI:
-		logicValue = int64(handPokerType)<<11 + pokerDataTemp[0].Value<<7
+		logicValue = int64(handPokerType)<<13 + pokerDataTemp[0].Value<<8
 	case POKERTYPE_GAOPAI:
-		logicValue = int64(handPokerType)<<11 + pokerDataTemp[0].Value<<7 + pokerDataTemp[1].Value<<4 + pokerDataTemp[2].Value
+		logicValue = int64(handPokerType)<<13 + pokerDataTemp[0].Value<<8 + pokerDataTemp[1].Value<<4 + pokerDataTemp[2].Value
 	default:
 		logicValue = -1
 	}
 	return logicValue
 }
 
-// CalcPokerLogicValue 计算牌力值  1-5 6-10 11-15 存储牌值和花色(2-5位存储牌值, 1存储花色--先比大小, 再比花色) 16-20 存储牌型
+// CalcPokerLogicValue 计算牌力值  1-6 7-12 13-18 存储牌值和花色(3-6位存储牌值, 1-2存储花色--先比大小, 再比花色)   19-22 存储牌型
 func CalcPokerLogicValue(pokerData []*Poker, handPokerNum, handPokerType int) int64 {
 	var logicValue int64
 	pokerDataTemp := make([]*Poker, handPokerNum)
@@ -309,10 +309,10 @@ func CalcPokerLogicValue(pokerData []*Poker, handPokerNum, handPokerType int) in
 		fallthrough
 	case POKERTYPE_BAOZI, POKERTYPE_SHUNJIN, POKERTYPE_JINHUA, POKERTYPE_SHUNZI, POKERTYPE_GAOPAI:
 		// 牌型 1牌值 1花色 2牌值 2花色 3牌值 3花色
-		logicValue = int64(handPokerType)<<15 +
-			pokerDataTemp[0].Value<<12 + pokerDataTemp[0].Color<<11 +
-			pokerDataTemp[1].Value<<7 + pokerDataTemp[1].Color<<6 +
-			pokerDataTemp[0].Value<<1 + pokerDataTemp[0].Color
+		logicValue = int64(handPokerType)<<18 +
+			pokerDataTemp[0].Value<<14 + pokerDataTemp[0].Color<<12 +
+			pokerDataTemp[1].Value<<8 + pokerDataTemp[1].Color<<6 +
+			pokerDataTemp[2].Value<<2 + pokerDataTemp[2].Color
 	default:
 		logicValue = -1
 	}
