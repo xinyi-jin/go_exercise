@@ -9,6 +9,19 @@ import (
 	"time"
 )
 
+const (
+	// 高牌		对子	顺子	金花	顺金	豹子	组合总数
+	// 16440	3744	720		1096	48		52		22100
+	// 0.7439 	0.1694 	0.0326 	0.0496 	0.0022	0.0024	1.0000	概率
+
+	POKERTYPE_PROB_GAOPAI  = 7439
+	POKERTYPE_PROB_DUIZI   = 1694
+	POKERTYPE_PROB_SHUNZI  = 326
+	POKERTYPE_PROB_JINHUA  = 496
+	POKERTYPE_PROB_SHUNJIN = 22
+	POKERTYPE_PROB_BAOZI   = 24
+)
+
 // 牌型		min		max		牌型
 
 // 豹子		222		AAA		5
@@ -27,6 +40,7 @@ const (
 	POKERTYPE_JINHUA
 	POKERTYPE_SHUNJIN
 	POKERTYPE_BAOZI
+	POKERTYPE_MAX
 )
 
 // 牌值
@@ -71,7 +85,18 @@ var (
 )
 
 var PokerData []*Poker
-var PokerLogicValueMap map[int64][]*Poker
+var PokerLogicValueMapSingle PokerLogicValueMap
+var PokerProbData []PokerLogicValueMap
+var PokerTypeProb = [POKERTYPE_MAX]int64{
+	POKERTYPE_PROB_GAOPAI,
+	POKERTYPE_PROB_DUIZI,
+	POKERTYPE_PROB_SHUNZI,
+	POKERTYPE_PROB_JINHUA,
+	POKERTYPE_PROB_SHUNJIN,
+	POKERTYPE_PROB_BAOZI,
+}
+
+type PokerLogicValueMap map[int64][]*Poker
 
 type Poker struct {
 	Value int64
@@ -106,13 +131,13 @@ func PokerDataShuffle(pokerData []*Poker) []*Poker {
 
 // PokerDataInfo 输出手牌信息
 func PokerDataInfo(pokerData []*Poker) string {
-	s := ""
+	s := "PokerDataInfo:"
 	for _, v := range pokerData {
 		if v != nil {
 			s += fmt.Sprintf("%v ", PokerInfo(v))
 		}
 	}
-	s += fmt.Sprintf("PokerDataInfo: %s \n", s)
+	s += fmt.Sprintf(" %s \n", s)
 	return s
 }
 
@@ -191,15 +216,40 @@ func HandPokerLogicValueInfo(pokerLogicValueMap map[int64][]*Poker) {
 	}
 }
 
-// AllPokerConbine 所有牌型组合
-func AllPokerConbine(pokerData []*Poker, handPokerNum int) {
+// PokerProbDataSort 单个牌型, 牌力排序
+func PokerProbDataSort(PokerProbData []PokerLogicValueMap, hpt int, hplv int64) []int64 {
+	logicValueArr := make(tools.Int64Slice, len(PokerProbData[hpt]))
+	pos := 0
+	for k, _ := range PokerProbData[hpt] {
+		logicValueArr[pos] = k
+		pos++
+	}
+	sort.Sort(logicValueArr)
+	return logicValueArr
+}
+
+// AllPokerProbDataSort 所有牌型, 牌力排序 (废弃， 不必排, 可直接使用当前牌力值 / 牌力值总数 计算概率)
+func AllPokerProbDataSort(plvm PokerLogicValueMap) []int64 {
+	allLogicValueArr := make(tools.Int64Slice, len(plvm))
+	pos := 0
+
+	for k := range plvm {
+		allLogicValueArr[pos] = k
+		pos++
+	}
+	sort.Sort(allLogicValueArr)
+	return allLogicValueArr
+}
+
+// AllPokerCombine 所有牌型组合
+func AllPokerCombine(pokerData []*Poker, handPokerNum int) {
 	// file, err := os.OpenFile("E:/zjh.log", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0)
 	// defer file.Close()
 	// if err != nil {
 	// 	fmt.Println("打开文件失败")
 	// 	return
 	// }
-	PokerLogicValueMap = make(map[int64][]*Poker)
+	PokerLogicValueMapSingle = make(PokerLogicValueMap)
 	pokers := make([]*Poker, handPokerNum)
 	pos := int64(0)
 	value := len(PokerData)
@@ -209,33 +259,33 @@ func AllPokerConbine(pokerData []*Poker, handPokerNum int) {
 				// pokers[0] = pokerData[i]
 				// pokers[1] = pokerData[j]
 				// pokers[2] = pokerData[z]
-				// PokerLogicValueMap[pos] = pokers
+				// PokerLogicValueMapSingle[pos] = pokers
 
 				pokers = []*Poker{pokerData[i], pokerData[j], pokerData[z]}
 				hpt := CalcHandPokerType(pokers, handPokerNum) // 计算牌型
 
-				// 记录对应牌型数量
-				WritePokerTypeCnt(hpt)
+				hplv := CalcHandPokerLogicValue(pokers, handPokerNum, hpt) // 计算牌力
+				// hplv := CalcPokerLogicValue(pokers, handPokerNum, hpt) // 计算牌力
 
-				// hplv := CalcHandPokerLogicValue(pokers, handPokerNum, hpt) // 计算牌力
-				hplv := CalcPokerLogicValue(pokers, handPokerNum, hpt) // 计算牌力
-
-				if _, ok := PokerLogicValueMap[hplv]; !ok {
-					PokerLogicValueMap[hplv] = pokers
+				if _, ok := PokerLogicValueMapSingle[hplv]; !ok {
+					PokerLogicValueMapSingle[hplv] = pokers
 				} /* else {
-					fmt.Fprintf(file, "==== %d %d %s %s", hplv, hpt, PokerDataInfo(PokerLogicValueMap[hplv]), PokerDataInfo(pokers))
+				fmt.Fprintf(file, "==== %d %d %s %s", hplv, hpt, PokerDataInfo(PokerLogicValueMapSingle[hplv]), PokerDataInfo(pokers))
 				} */
 				pos += 1 // 统计牌型总数
+
+				// 记录对应牌型数量
+				WritePokerTypeCnt(PokerProbData, pokers, hpt, hplv)
 			}
 		}
 	}
 	// cnt := 0
-	// for range PokerLogicValueMap {
+	// for range PokerLogicValueMapSingle {
 	// 	cnt++
 	// }
-	// HandPokerLogicValueInfo(PokerLogicValueMap)
-	fmt.Println("AllPokerConbine pos", pos)
-	fmt.Println("PokerLogicValueMap cnt ", len(PokerLogicValueMap)) // 牌力 牌型映射数量
+	// HandPokerLogicValueInfo(PokerLogicValueMapSingle)
+	fmt.Println("AllPokerCombine pos", pos)
+	fmt.Println("PokerLogicValueMapSingle cnt ", len(PokerLogicValueMapSingle)) // 牌力 牌型映射数量
 }
 
 // CalcHandPokerType 计算手牌牌型
@@ -284,11 +334,15 @@ func CalcHandPokerLogicValue(pokerData []*Poker, handPokerNum, handPokerType int
 	switch handPokerType {
 	case POKERTYPE_DUIZI:
 		PokerDataSortDuiZi(pokerDataTemp, handPokerNum)
-		fallthrough
-	case POKERTYPE_BAOZI, POKERTYPE_SHUNJIN, POKERTYPE_JINHUA, POKERTYPE_SHUNZI:
-		logicValue = int64(handPokerType)<<13 + pokerDataTemp[0].Value<<8
-	case POKERTYPE_GAOPAI:
-		logicValue = int64(handPokerType)<<13 + pokerDataTemp[0].Value<<8 + pokerDataTemp[1].Value<<4 + pokerDataTemp[2].Value
+		logicValue = int64(handPokerType)<<12 + pokerDataTemp[0].Value<<7 + pokerData[2].Value
+	case POKERTYPE_BAOZI, POKERTYPE_SHUNJIN, POKERTYPE_SHUNZI:
+		// A32 重排
+		if IsShunZiA23(pokerDataTemp, handPokerNum) {
+			PokerDataSortShunZiA23(pokerDataTemp, handPokerNum)
+		}
+		logicValue = int64(handPokerType)<<12 + pokerDataTemp[0].Value<<7
+	case POKERTYPE_GAOPAI, POKERTYPE_JINHUA:
+		logicValue = int64(handPokerType)<<12 + pokerDataTemp[0].Value<<7 + pokerDataTemp[1].Value<<4 + pokerDataTemp[2].Value
 	default:
 		logicValue = -1
 	}
@@ -308,6 +362,10 @@ func CalcPokerLogicValue(pokerData []*Poker, handPokerNum, handPokerType int) in
 		PokerDataSortDuiZi(pokerDataTemp, handPokerNum)
 		fallthrough
 	case POKERTYPE_BAOZI, POKERTYPE_SHUNJIN, POKERTYPE_JINHUA, POKERTYPE_SHUNZI, POKERTYPE_GAOPAI:
+		// A32 重排
+		if IsShunZiA23(pokerDataTemp, handPokerNum) {
+			PokerDataSortShunZiA23(pokerDataTemp, handPokerNum)
+		}
 		// 牌型 1牌值 1花色 2牌值 2花色 3牌值 3花色
 		logicValue = int64(handPokerType)<<18 +
 			pokerDataTemp[0].Value<<14 + pokerDataTemp[0].Color<<12 +
@@ -317,6 +375,46 @@ func CalcPokerLogicValue(pokerData []*Poker, handPokerNum, handPokerType int) in
 		logicValue = -1
 	}
 	return logicValue
+}
+
+// CalcWinProb 计算获胜概率  获胜概率 = 牌力百分比 牌型概率 和 牌值概率, 相同牌力算作输
+func CalcWinProb(pokerProbData []PokerLogicValueMap, pokerData []*Poker, handPokerNum int) int64 {
+	hpt := CalcHandPokerType(pokerData, handPokerNum)
+	hplv := CalcHandPokerLogicValue(pokerData, handPokerNum, hpt)
+	// fmt.Printf("CalcWinProb %d %d\n", hpt, hplv)
+
+	hplvArr := PokerProbDataSort(pokerProbData, hpt, hplv) // 单个牌型牌力排序
+	hplvCnt := len(hplvArr)
+	index := 0
+	for k, v := range hplvArr {
+		if v == hplv {
+			index = k
+			break
+		}
+	}
+
+	allhplvArr := AllPokerProbDataSort(PokerLogicValueMapSingle) //所有牌力排序
+	allhplvCnt := len(allhplvArr)
+	allIndex := 0
+	for k, v := range allhplvArr {
+		if v == hplv {
+			allIndex = k
+			break
+		}
+	}
+
+	hptProb := PokerTypeProb[hpt]                // 牌型获胜概率
+	hplvProb := index * 10000 / hplvCnt          // 同牌型下, 牌力获胜概率
+	allhplvProb := allIndex * 10000 / allhplvCnt // 所有牌型下, 牌力获胜概率
+
+	fmt.Printf("hptProb %v,hplvProb %v allhplvProb %v \n", hptProb, hplvProb, allhplvProb)
+	return 0
+}
+
+// CalcWinCoinProb 计算赢分概率  赢分概率 = 赢牌概率 * 赢牌分 - 输牌概率 * 输牌分
+func CalcWinCoinProb(pokerProbData []PokerLogicValueMap, pokerData []*Poker, handPokerNum int) int64 {
+
+	return 0
 }
 
 // IsBaoZi
@@ -384,6 +482,21 @@ func IsShunZi(pokerData []*Poker, handPokerNum int) bool {
 	return true
 }
 
+// IsShunZiA23
+func IsShunZiA23(pokerData []*Poker, handPokerNum int) bool {
+	if len(pokerData) != handPokerNum {
+		return false
+	}
+	PokerDataSort(pokerData)
+	v := pokerData[0].Value
+
+	// A23
+	if v == POKER_A && pokerData[1].Value == POKER_3 && pokerData[2].Value == POKER_2 {
+		return true
+	}
+	return false
+}
+
 // IsDuiZi
 func IsDuiZi(pokerData []*Poker, handPokerNum int) bool {
 	if len(pokerData) != handPokerNum {
@@ -447,8 +560,24 @@ func PokerDataSortDuiZi(pokerData []*Poker, handPokerNum int) {
 	}
 }
 
+// PokerDataSortShunZiA23 A23 排序
+func PokerDataSortShunZiA23(pokerData []*Poker, handPokerNum int) {
+	l := len(pokerData)
+	if l < 2 {
+		return
+	}
+	PokerDataSort(pokerData)
+
+	var pokerATemp *Poker
+	if pokerData[0].Value == POKER_A {
+		pokerATemp = pokerData[0]
+		pokerData = append(pokerData[:0], pokerData[1:]...)
+	}
+	pokerData = append(pokerData, pokerATemp)
+}
+
 // 记录牌型数量
-func WritePokerTypeCnt(hpt int) {
+func WritePokerTypeCnt(PokerProbData []PokerLogicValueMap, pokers []*Poker, hpt int, hplv int64) {
 	switch hpt {
 	case POKERTYPE_DUIZI:
 		CNT_DUIZI++
@@ -465,9 +594,16 @@ func WritePokerTypeCnt(hpt int) {
 	default:
 		fmt.Printf("WritePokerTypeCnt hpt %v", hpt)
 	}
+	// 记录牌型概率表
+	PokerProbData[hpt][hplv] = pokers
 }
 
 func init() {
+	PokerProbData = make([]PokerLogicValueMap, POKERTYPE_MAX)
+	for i := 0; i < POKERTYPE_MAX; i++ {
+		PokerProbData[i] = make(PokerLogicValueMap)
+	}
+
 	PokerDataInit(PokerValueNum, PokerColorNum, PokerNum)
 	// fmt.Printf("PokerData init %s\n", PokerDataInfo(PokerData))
 	if PokerData != nil {
@@ -475,7 +611,7 @@ func init() {
 		// fmt.Printf("PokerData shuffle %s\n", PokerDataInfo(PokerData))
 	}
 
-	AllPokerConbine(PokerData, HandPokerNum)
+	AllPokerCombine(PokerData, HandPokerNum)
 	fmt.Printf("PokerTypeCnt %v %v %v %v %v %v",
 		CNT_GAOPAI,
 		CNT_DUIZI,
