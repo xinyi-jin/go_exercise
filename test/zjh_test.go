@@ -61,3 +61,18 @@ func TestCalcWinProb(t *testing.T) {
 	ALG.CalcWinProb(ALG.PokerProbData, pokerData, ALG.HandPokerNum)
 	fmt.Printf("%s", ALG.PokerDataInfo(pokerData))
 }
+
+func TestComparePoker(t *testing.T) {
+	res := ALG.ComparePoker(
+		[]*ALG.Poker{
+			{Value: 9, Color: 0},
+			{Value: 9, Color: 2},
+			{Value: 10, Color: 1},
+		},
+		[]*ALG.Poker{
+			{Value: 8, Color: 1},
+			{Value: 9, Color: 3},
+			{Value: 9, Color: 1},
+		}, ALG.HandPokerNum)
+	fmt.Println("compare poker ", res)
+}

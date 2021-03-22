@@ -84,6 +84,7 @@ var (
 	CNT_BAOZI   int64
 )
 
+var CardPos int
 var PokerData []*Poker
 var PokerLogicValueMapSingle PokerLogicValueMap
 var PokerProbData []PokerLogicValueMap
@@ -102,6 +103,8 @@ type Poker struct {
 	Value int64
 	Color int64
 }
+
+// ================牌库================
 
 // PokerDataInit 初始化牌库
 func PokerDataInit(value, color, pokerNum int) {
@@ -127,6 +130,17 @@ func PokerDataShuffle(pokerData []*Poker) []*Poker {
 		pokerData[i], pokerData[n] = pokerData[n], pokerData[i]
 	}
 	return pokerData
+}
+
+// NextCard 下一张牌
+func NextCard(pokerData []*Poker, pos int) *Poker {
+	if pos > -1 && pos < len(pokerData) {
+		if pokerData[pos] != nil {
+			pos++
+			return pokerData[pos]
+		}
+	}
+	return nil
 }
 
 // PokerDataInfo 输出手牌信息
@@ -417,6 +431,23 @@ func CalcWinCoinProb(pokerProbData []PokerLogicValueMap, pokerData []*Poker, han
 	return 0
 }
 
+// ComparePoker 比较大小
+func ComparePoker(pd1, pd2 []*Poker, handPokerNum int) bool {
+	if len(pd1) != len(pd2) || len(pd2) != handPokerNum {
+		return false
+	}
+	pdt1 := CalcHandPokerType(pd1, handPokerNum)
+	pdt2 := CalcHandPokerType(pd2, handPokerNum)
+	if pdt1 > pdt2 {
+		return true
+	} else if pdt1 == pdt2 {
+		if CalcHandPokerLogicValue(pd1, handPokerNum, pdt1) > CalcHandPokerLogicValue(pd2, handPokerNum, pdt2) {
+			return true
+		}
+	}
+	return false
+}
+
 // IsBaoZi
 func IsBaoZi(pokerData []*Poker, handPokerNum int) bool {
 	if len(pokerData) != handPokerNum {
@@ -576,7 +607,7 @@ func PokerDataSortShunZiA23(pokerData []*Poker, handPokerNum int) {
 	pokerData = append(pokerData, pokerATemp)
 }
 
-// 记录牌型数量
+// WritePokerTypeCnt 记录牌型数量
 func WritePokerTypeCnt(PokerProbData []PokerLogicValueMap, pokers []*Poker, hpt int, hplv int64) {
 	switch hpt {
 	case POKERTYPE_DUIZI:
@@ -600,6 +631,8 @@ func WritePokerTypeCnt(PokerProbData []PokerLogicValueMap, pokers []*Poker, hpt 
 
 func init() {
 	PokerProbData = make([]PokerLogicValueMap, POKERTYPE_MAX)
+	CardPos = 0
+
 	for i := 0; i < POKERTYPE_MAX; i++ {
 		PokerProbData[i] = make(PokerLogicValueMap)
 	}
@@ -612,7 +645,7 @@ func init() {
 	}
 
 	AllPokerCombine(PokerData, HandPokerNum)
-	fmt.Printf("PokerTypeCnt %v %v %v %v %v %v",
+	fmt.Printf("PokerTypeCnt %v %v %v %v %v %v\n",
 		CNT_GAOPAI,
 		CNT_DUIZI,
 		CNT_SHUNZI,
@@ -624,4 +657,319 @@ func init() {
 // 炸金花算法实现
 func zjh() {
 
+}
+
+// ================玩家================
+// 玩家操作码
+const (
+	OpRaise = iota
+	OpCall
+	OpAllIn
+	OpLookPoker
+	OpComparePoker
+	OpFold
+)
+
+// 玩家操作错误码
+const (
+	// OpOtherUnKnow ErrorCodeType = -1
+	OpSucess ErrorCodeType = iota
+	OpCoinNotEnough
+	OpYetLookPoker
+	OpNotPlaying
+	OpNoLook
+)
+
+// 玩家状态
+const (
+	STATUS_LEAVE Status = 1 << iota
+	STATUS_PLAY
+	STATUS_WAIT
+	STATUS_LOSE
+	STATUS_FOLD
+	STATUS_ALLIN
+	STATUS_Bet
+	STATUS_LOOK
+)
+
+type Status int
+type ErrorCodeType int
+
+type UserInfo struct {
+	UserPokerData []*Poker // 用户手牌
+	UserBaseBet   int64    // 用户底注
+	UserRound     int      // 用户下注轮数
+	UserLookPoker bool     // 用户看牌
+	UserCoin      int64    // 用户金币
+	UserStatus    Status   // 用户状态
+}
+
+func NewUser(baseBet int64) *UserInfo {
+	userInfo := &UserInfo{
+		UserBaseBet: baseBet,
+		UserRound:   1, // 首轮自动下注
+		UserStatus:  STATUS_PLAY,
+		UserCoin:    DefalutCoin - UserBaseBet,
+	}
+	userInfo.UserPokerData = make([]*Poker, HandPokerNum)
+	for i := 0; i < HandPokerNum; i++ {
+		userInfo.UserPokerData[i] = NextCard(PokerData, CardPos)
+		CardPos++
+	}
+	return userInfo
+}
+
+// Raise 加注
+func (u *UserInfo) Raise() ErrorCodeType {
+	if u.UserStatus&STATUS_PLAY == 0 {
+		return OpNotPlaying
+	}
+
+	if u.UserCoin > u.UserBaseBet*2 {
+		u.UserRound++
+		u.UserCoin -= u.UserBaseBet * 2
+		u.UserBaseBet *= 2
+	} else {
+		fmt.Println("Raise, coin not enough!")
+		return OpCoinNotEnough
+	}
+	return OpSucess
+}
+
+// Call 跟注
+func (u *UserInfo) Call() ErrorCodeType {
+	if u.UserStatus&STATUS_PLAY == 0 {
+		return OpNotPlaying
+	}
+
+	if u.UserCoin > u.UserBaseBet {
+		u.UserRound++
+		u.UserCoin -= u.UserBaseBet
+	} else {
+		fmt.Println("Call, coin not enough!")
+		return OpCoinNotEnough
+	}
+	return OpSucess
+}
+
+// AllIn 全压
+func (u *UserInfo) AllIn() ErrorCodeType {
+	if u.UserStatus&STATUS_PLAY == 0 {
+		return OpNotPlaying
+	}
+
+	needCoin := int64(GameRounds-u.UserRound) * u.UserBaseBet
+	if u.UserCoin > needCoin {
+		u.UserRound++
+		u.UserCoin -= needCoin
+		u.UserStatus |= STATUS_ALLIN
+		u.UserStatus ^= STATUS_PLAY
+		u.UserBaseBet = needCoin
+	} else {
+		fmt.Println("AllIn, coin not enough!")
+		return OpCoinNotEnough
+	}
+	return OpSucess
+}
+
+// LookPoker 看牌
+func (u *UserInfo) LookPoker() ErrorCodeType {
+	if u.UserStatus&STATUS_PLAY == 0 {
+		return OpNotPlaying
+	}
+
+	if u.UserRound <= 2 {
+		return OpNoLook
+	}
+
+	if !u.UserLookPoker {
+		u.UserLookPoker = true
+		u.UserStatus |= STATUS_LOOK
+	} else {
+		return OpYetLookPoker
+	}
+	return OpSucess
+}
+
+// IsLookPoker 是否看牌
+func (u *UserInfo) IsLookPoker() bool {
+	return u.UserLookPoker
+}
+
+// ComparePoker 比牌
+func (u *UserInfo) ComparePoker(otherIndex int) bool {
+	if u.UserStatus&STATUS_PLAY == 0 || otherIndex < 0 || otherIndex > UserNumber {
+		return false
+	}
+
+	isWin := ComparePoker(u.UserPokerData, PlayingUser[otherIndex].UserPokerData, HandPokerNum)
+	if isWin {
+		PlayingUser[otherIndex].UserStatus = STATUS_LOSE
+	} else {
+		u.UserStatus = STATUS_LOSE
+	}
+	return isWin
+}
+
+// Fold 弃牌
+func (u *UserInfo) Fold() ErrorCodeType {
+	if u.UserStatus&STATUS_PLAY == 0 {
+		return OpNotPlaying
+	}
+
+	u.UserStatus |= STATUS_FOLD
+	u.UserStatus ^= STATUS_PLAY
+	return OpSucess
+}
+
+// ================奖池================
+var JackPot *JackPotInfo
+
+type JackPotInfo struct {
+	BaseBet int64
+	AllBet  int64
+}
+
+func NewJackPot() *JackPotInfo {
+	return &JackPotInfo{BaseBet: 0, AllBet: 0}
+}
+
+// ================游戏================
+
+const (
+	UserNumber  = 3  // 玩家人数
+	UserBaseBet = 10 // 玩家底注
+
+	GameRounds  = 10    // 游戏轮数
+	DefalutCoin = 10000 // 默认金币
+)
+
+var PlayingUser []*UserInfo
+
+type GameInfo struct {
+	GameBanker   int // 游戏庄家
+	CurrentUser  int // 当前玩家
+	CurrentRound int // 单前轮数
+}
+
+// CalcNextUserBaseBet 下个玩家的底注 = 当前玩家的下注数
+func CalcNextUserBaseBet(gameInfo *GameInfo) {
+	nextUser := (gameInfo.CurrentUser + 1) % UserNumber
+	PlayingUser[nextUser].UserBaseBet = PlayingUser[gameInfo.CurrentUser].UserBaseBet
+}
+
+// TurnUser 转换玩家
+func TurnUser(gameInfo *GameInfo) {
+	CalcNextUserBaseBet(gameInfo)
+	gameInfo.CurrentUser = (gameInfo.CurrentUser + 1) % UserNumber
+	if PlayingUser[gameInfo.CurrentUser].UserStatus&STATUS_PLAY == 0 {
+		TurnUser(gameInfo)
+	}
+}
+
+// IsGameOver 游戏是否结束
+func IsGameOver() bool {
+	playingCnt := 0
+	for _, v := range PlayingUser {
+		if (v.UserStatus&STATUS_PLAY != 0 || v.UserStatus&STATUS_ALLIN != 0) && v.UserRound < GameRounds {
+			playingCnt++
+		}
+	}
+	if playingCnt > 1 {
+		return false
+	}
+
+	return true
+}
+
+// GameStart 游戏开始
+func GameStart() {
+	fmt.Println("================游戏开始================")
+	jackPot := NewJackPot()
+	gameInfo := &GameInfo{
+		GameBanker:   rand.Intn(UserNumber),
+		CurrentRound: 1,
+	}
+	gameInfo.CurrentUser = gameInfo.GameBanker
+	PlayingUser = make([]*UserInfo, UserNumber)
+	for i := 0; i < UserNumber; i++ {
+		PlayingUser[i] = NewUser(UserBaseBet)
+		jackPot.BaseBet += UserBaseBet
+		jackPot.AllBet += UserBaseBet
+	}
+
+	for {
+		fmt.Printf("================回合 %d 等待玩家 %v 操作================\n", gameInfo.CurrentRound, gameInfo.CurrentUser)
+		fmt.Println("==0 加注")
+		fmt.Println("==1 跟注")
+		fmt.Println("==2 全压")
+		fmt.Println("==3 看牌")
+		fmt.Println("==4 比牌")
+		fmt.Println("==5 弃牌")
+		fmt.Println("==请输入对应标号进行操作")
+		var in int
+		if _, err := fmt.Scanf("%d\n", &in); err != nil {
+			fmt.Println("read operate error ", err)
+			continue
+		}
+
+		var errorUserOpCode ErrorCodeType
+		switch in {
+		case OpRaise:
+			errorUserOpCode = PlayingUser[gameInfo.CurrentUser].Raise()
+		case OpCall:
+			errorUserOpCode = PlayingUser[gameInfo.CurrentUser].Call()
+		case OpAllIn:
+			errorUserOpCode = PlayingUser[gameInfo.CurrentUser].AllIn()
+		case OpLookPoker:
+			fmt.Printf("玩家 %d 看牌 %s", gameInfo.CurrentUser, PokerDataInfo(PlayingUser[gameInfo.CurrentUser].UserPokerData))
+			errorUserOpCode = PlayingUser[gameInfo.CurrentUser].LookPoker()
+		case OpComparePoker:
+			fmt.Println("================请输入比牌玩家ID================")
+			var index int
+			if _, err := fmt.Scanf("%d\n", &index); err != nil {
+				fmt.Println("read operate comparepoker error ", err)
+				continue
+			}
+			isWin := PlayingUser[gameInfo.CurrentUser].ComparePoker(index)
+			fmt.Printf("================玩家 %v 比牌 %v================\n", gameInfo.CurrentUser, isWin)
+			errorUserOpCode = OpSucess
+		case OpFold:
+			errorUserOpCode = PlayingUser[gameInfo.CurrentUser].Fold()
+		default:
+			errorUserOpCode = -1
+		}
+		fmt.Printf("================玩家 %v 操作 %v coin %v================\n", gameInfo.CurrentUser, in, PlayingUser[gameInfo.CurrentUser].UserCoin)
+
+		if errorUserOpCode != OpSucess {
+			fmt.Println("errorUserOpCode!=OpSucess ", errorUserOpCode)
+			continue
+		}
+
+		// 当前玩家是庄家的上家，计算游戏轮数
+		if (gameInfo.GameBanker+UserNumber-1)%UserNumber == gameInfo.CurrentUser {
+			gameInfo.CurrentRound++
+		}
+		if IsGameOver() {
+			fmt.Println("====输赢信息：")
+			for i, v := range PlayingUser {
+				fmt.Printf("==玩家 %d coin %d\n", i, v.UserCoin)
+			}
+
+			fmt.Println("================本局游戏结束，1 下一局 2 退出游戏================")
+			var in int
+			if _, err := fmt.Scanf("%d\n", &in); err != nil {
+				fmt.Println("read next game error ", err)
+				continue
+			}
+
+			if in == 1 {
+				GameStart()
+			} else {
+				break // 游戏结束
+			}
+		}
+		TurnUser(gameInfo)
+	}
+	fmt.Println("================游戏结束================")
 }
