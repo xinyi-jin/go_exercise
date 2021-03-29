@@ -8,7 +8,7 @@ import (
 
 输入为 非空 字符串且只包含数字 1 和 0。 */
 
-func addBinary(a string, b string) string {
+func AddBinary(a string, b string) string {
 	ans := ""
 	carry := 0
 	lenA, lenB := len(a), len(b)
