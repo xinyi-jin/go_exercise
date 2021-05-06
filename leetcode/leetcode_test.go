@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	leetcode1720 "go_exercise/leetcode/alg1720"
 	leetcode190 "go_exercise/leetcode/alg190"
 	leetcode191 "go_exercise/leetcode/alg191"
 	leetcode67 "go_exercise/leetcode/alg67"
@@ -24,4 +25,25 @@ func TestAddBinary(T *testing.T) {
 func TestHammingWeight(T *testing.T) {
 	n := leetcode191.HammingWeight(2)
 	fmt.Println("num ", n)
+}
+func TestDecode(T *testing.T) {
+	var data = []struct {
+		encoded []int
+		first   int
+		coded   []int
+	}{
+		{[]int{1, 2, 3}, 1, []int{1, 0, 2, 1}},
+		{[]int{6, 2, 7, 3}, 4, []int{4, 2, 0, 7, 4}},
+	}
+	for _, v := range data {
+		n := leetcode1720.DecodeEx(v.encoded, v.first)
+		if n != nil {
+			for i := 0; i < len(n); i++ {
+				if n[i] != v.coded[i] {
+					fmt.Errorf("not match %v %v %v", v.encoded, v.coded, n)
+					break
+				}
+			}
+		}
+	}
 }
