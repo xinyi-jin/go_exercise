@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	leetcode1486 "go_exercise/leetcode/alg1486"
 	leetcode1720 "go_exercise/leetcode/alg1720"
 	leetcode190 "go_exercise/leetcode/alg190"
 	leetcode191 "go_exercise/leetcode/alg191"
@@ -40,10 +41,28 @@ func TestDecode(T *testing.T) {
 		if n != nil {
 			for i := 0; i < len(n); i++ {
 				if n[i] != v.coded[i] {
-					fmt.Errorf("not match %v %v %v", v.encoded, v.coded, n)
-					break
+					fmt.Printf("not match %v %v %v \n", v.encoded, v.coded, n)
 				}
 			}
+		}
+	}
+}
+func TestXorOperation(T *testing.T) {
+	var data = []struct {
+		n     int
+		start int
+		res   int
+	}{
+		{5, 0, 8},
+		{4, 3, 8},
+		{1, 7, 7},
+		{10, 5, 2},
+	}
+	for _, v := range data {
+		n := leetcode1486.XorOperationExtion(v.n, v.start)
+		fmt.Println()
+		if n != v.res {
+			fmt.Printf("not match %v %v %v \n", v.n, v.start, n)
 		}
 	}
 }
