@@ -25,19 +25,68 @@ package alg03
 
 输入: s = ""
 输出: 0 */
+
+/* 解题思路：
+滑动窗口：
+依次滑动所有的求取所有的情况
+程序流程如下所示：
+str "abcedf"
+a
+ab
+abc
+abcd
+abcde
+abcdef
+*/
 func lengthOfLongestSubstring(s string) int {
-	if s == "" {
-		return 0
-	}
-	maxLength, left := 1, 0
-	for i := 1; i < len(s); i++ {
-		for j := left; j < i; j++ {
-			if s[i] == s[j] {
-				maxLength = i - left
-				left++
-				break
-			}
+	sm := map[byte]int{}
+	maxLength, left, n := 0, -1, len(s)
+	for i := 0; i < n; i++ {
+		if i > 0 {
+			delete(sm, s[i-1])
+		}
+		for left+1 < n && sm[s[left+1]] == 0 {
+			sm[s[left+1]]++
+			left++
+		}
+		if curLength := left - i + 1; curLength > maxLength {
+			maxLength = curLength
 		}
 	}
 	return maxLength
+}
+
+/* 解题思路：
+暴力求解：查找所有子字符串，逐个判断其中元素是否重复
+跑测试用例会超时 */
+func lengthOfLongestSubstringBaoLi(s string) int {
+	if len(s) <= 1 {
+		return len(s)
+	}
+	ss := make([]string, 0)
+	maxLength, index := 0, 0
+	for i := 0; i < len(s)-1; i++ {
+		for j := i; j < len(s); j++ {
+			ss = append(ss, s[i:j+1])
+			index++
+		}
+	}
+	for _, s := range ss {
+		if isRepet(s) && len(s) > maxLength {
+			maxLength = len(s)
+		}
+	}
+	return maxLength
+}
+
+func isRepet(s string) bool {
+	sm := make(map[string]int)
+	for _, v := range s {
+		if _, ok := sm[string(v)]; !ok {
+			sm[string(v)] = 1
+		} else {
+			return false
+		}
+	}
+	return true
 }
