@@ -8,6 +8,8 @@ type ChinaChessPlayerData struct {
 	cmPos           int                 // 当前棋子位置
 	cmType          int                 // 当前棋子类型
 	cmDropPoints    []int               // 当前棋子可落子点
+	cmEat           bool                // 是否吃子
+	cmEated         int                 // 被吃的棋子
 	nextCmType      int                 // 落点棋子类型
 	chessBoardIndex [CHESSBOARD_NUM]int // 棋盘索引数组
 	chessManIndex   [CHESSMAN_NUM]int   // 棋子索引数组
@@ -21,29 +23,18 @@ func NewChinaChessPlayerData(pos int, chessBoardIndex [CHESSBOARD_NUM]int, chess
 	}
 }
 
-func (cpd *ChinaChessPlayerData) clear(chessMan, pos, nextPos int) bool {
-
-	return false
+func (cpd *ChinaChessPlayerData) clear() {
+	cpd.cm = -1
+	cpd.cmPos = -1
+	cpd.cmType = 0
+	cpd.cmDropPoints = nil
+	cpd.cmEat = false
+	cpd.cmEated = 0
+	cpd.nextCmType = 0
+	cpd.chessBoardIndex = [CHESSBOARD_NUM]int{}
+	cpd.chessManIndex = [CHESSMAN_NUM]int{}
 }
 
-/* const (
-	NOTCHESSMAN   = 0 // 无棋子
-	RED_GENERALS  = 1 // 红方帅
-	RED_ROOKS     = 2 // 红方车
-	RED_HORSES    = 3 // 红方马
-	RED_CONNONS   = 4 // 红方炮
-	RED_ELEPHANTS = 5 // 红方相
-	RED_GUARDS    = 6 // 红方士
-	RED_SOLDIERS  = 7 // 红方兵
-
-	BLACK_GENERALS  = -1 // 黑方将
-	BLACK_ROOKS     = -2 // 黑方车
-	BLACK_HORSES    = -3 // 黑方马
-	BLACK_CONNONS   = -4 // 黑方炮
-	BLACK_ELEPHANTS = -5 // 黑方象
-	BLACK_GUARDS    = -6 // 黑方仕
-	BLACK_SOLDIERS  = -7 // 黑方卒
-) */
 // 搜索落子点 每种棋子对应不同的落子点数量
 func (cpd *ChinaChessPlayerData) searchDropPoints() []int {
 	switch cpd.cmType {

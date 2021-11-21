@@ -101,3 +101,10 @@ var CHESSBOARD_INDEX = [CHESSBOARD_NUM]int{
 
 // 棋子索引数组 -1无效棋子
 var CHESSBMAN_INDEX = [CHESSMAN_NUM]int{-1, 4, 0, 8, 1, 7, 19, 25, 3, 5, 2, 6, 27, 29, 31, 33, 35, 85, 81, 89, 82, 88, 64, 70, 84, 86, 83, 87, 54, 56, 58, 60, 62}
+
+// 车 预置表
+var CHESSMAN_ROOK = map[int][][]int{
+	0: {
+		{0, 0, 0, 0, 0, 0, 0, 0, 0},
+	},
+}
