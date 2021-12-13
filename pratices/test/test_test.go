@@ -41,4 +41,5 @@ func TestUint(t *testing.T) {
 	fmt.Println(num)
 	num = 0xFE + 1
 	fmt.Println("add after", num)
+	fmt.Println("-1/9=", -1/9)
 }

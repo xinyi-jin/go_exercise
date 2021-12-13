@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"fmt"
 	leetcode02 "go_exercise/leetcode/alg02"
 	leetcode1486 "go_exercise/leetcode/alg1486"
@@ -9,6 +10,7 @@ import (
 	leetcode191 "go_exercise/leetcode/alg191"
 	leetcode67 "go_exercise/leetcode/alg67"
 	"testing"
+	"unicode"
 )
 
 func TestReverseBits(T *testing.T) {
@@ -96,5 +98,27 @@ func TestAddTwoNumbers(T *testing.T) {
 			res = res.Next
 			i++
 		}
+	}
+}
+
+func TestBytesTrim(T *testing.T) {
+	// res := bytes.TrimSpace([]byte("     a B c     "))
+	res := bytes.ToLower([]byte("     a B c     "))
+	bytes := make([]byte, 0)
+	for _, v := range res {
+		if unicode.IsLower(rune(v)) {
+			bytes = append(bytes, v)
+		}
+	}
+	fmt.Printf("%v\n", string(bytes))
+}
+func TestInSequence(T *testing.T) {
+	card := int64(1)
+	cards := []int64{card - 3, card - 2, card - 1}
+	for i := 0; i < 3; i++ {
+		cards[0]++
+		cards[1]++
+		cards[2]++
+		fmt.Println(cards)
 	}
 }
