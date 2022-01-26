@@ -1,8 +1,8 @@
 package moudle
 
 import (
-	"go_work/g2048/common"
-	"go_work/g2048/logic"
+	"go_exercise/g2048/common"
+	"go_exercise/g2048/logic"
 )
 
 type GameArray struct {

@@ -1,9 +1,9 @@
 package db
 
 import (
-	"GOPROJECT/dbServer/bean"
 	"database/sql"
 	"fmt"
+	"go_exercise/dbServer/bean"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"

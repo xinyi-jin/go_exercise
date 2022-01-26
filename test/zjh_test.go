@@ -2,16 +2,15 @@ package test
 
 import (
 	"fmt"
-	"go_exercise/leetcode/ALG"
-	_ "go_exercise/leetcode/ALG"
+	"go_exercise/leetcode/zjh"
 	"testing"
 )
 
-var pokerData []*ALG.Poker
+var pokerData []*zjh.Poker
 
 func init() {
-	pokerData = make([]*ALG.Poker, ALG.HandPokerNum)
-	pokerData = []*ALG.Poker{
+	pokerData = make([]*zjh.Poker, zjh.HandPokerNum)
+	pokerData = []*zjh.Poker{
 		{Value: 12, Color: 0},
 		{Value: 11, Color: 0},
 		{Value: 10, Color: 1},
@@ -23,19 +22,19 @@ func TestZjh(t *testing.T) {
 
 func TestCalcHandPokerType(T *testing.T) {
 
-	hpt := ALG.CalcHandPokerType(pokerData, ALG.HandPokerNum)
-	fmt.Printf("HandPokerType:%v \n%s", hpt, ALG.PokerDataInfo(pokerData))
+	hpt := zjh.CalcHandPokerType(pokerData, zjh.HandPokerNum)
+	fmt.Printf("HandPokerType:%v \n%s", hpt, zjh.PokerDataInfo(pokerData))
 
 }
 func TestCalcHandPokerLogicValue(T *testing.T) {
 	// A♦ K♦ A♣
-	hplv := ALG.CalcHandPokerLogicValue(pokerData, ALG.HandPokerNum, ALG.POKERTYPE_DUIZI)
+	hplv := zjh.CalcHandPokerLogicValue(pokerData, zjh.HandPokerNum, zjh.POKERTYPE_DUIZI)
 	fmt.Println("HandPokerLogicValue:", hplv)
 }
 
 func TestPokerDataSortShunZiA23(T *testing.T) {
-	ALG.PokerDataSortShunZiA23(pokerData, ALG.HandPokerNum)
-	fmt.Printf("PokerDataSortShunZiA23 %s", ALG.PokerDataInfo(pokerData))
+	zjh.PokerDataSortShunZiA23(pokerData, zjh.HandPokerNum)
+	fmt.Printf("PokerDataSortShunZiA23 %s", zjh.PokerDataInfo(pokerData))
 }
 
 func TestProb(t *testing.T) {
@@ -58,21 +57,21 @@ func TestProb(t *testing.T) {
 }
 
 func TestCalcWinProb(t *testing.T) {
-	ALG.CalcWinProb(ALG.PokerProbData, pokerData, ALG.HandPokerNum)
-	fmt.Printf("%s", ALG.PokerDataInfo(pokerData))
+	zjh.CalcWinProb(zjh.PokerProbData, pokerData, zjh.HandPokerNum)
+	fmt.Printf("%s", zjh.PokerDataInfo(pokerData))
 }
 
 func TestComparePoker(t *testing.T) {
-	res := ALG.ComparePoker(
-		[]*ALG.Poker{
+	res := zjh.ComparePoker(
+		[]*zjh.Poker{
 			{Value: 9, Color: 0},
 			{Value: 9, Color: 2},
 			{Value: 10, Color: 1},
 		},
-		[]*ALG.Poker{
+		[]*zjh.Poker{
 			{Value: 8, Color: 1},
 			{Value: 9, Color: 3},
 			{Value: 9, Color: 1},
-		}, ALG.HandPokerNum)
+		}, zjh.HandPokerNum)
 	fmt.Println("compare poker ", res)
 }

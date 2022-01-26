@@ -1,8 +1,8 @@
 package main
 
 import (
-	"GOPROJECT/dbServer/db"
 	"fmt"
+	"go_exercise/dbServer/db"
 	"os"
 )
 

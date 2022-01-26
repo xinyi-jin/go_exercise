@@ -1,4 +1,4 @@
-package mahjong
+package test
 
 import (
 	"fmt"
