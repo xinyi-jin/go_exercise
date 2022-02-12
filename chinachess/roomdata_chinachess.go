@@ -115,7 +115,7 @@ func (crd *ChinaChessRoomData) agreeConcelMove(chessMan, pos, nextPos int) bool 
 	crd.nextPlayer()
 
 	// 获取悔棋玩家
-	p := crd.seats[crd.pos]
+	// p := crd.seats[crd.pos]
 
 	// 获取最后一次操作记录
 	n := len(crd.gameRecord)
@@ -134,8 +134,8 @@ func (crd *ChinaChessRoomData) checkParams(chessMan, pos, nextPos int) bool {
 	// 获取当前操作玩家
 	player := crd.seats[pos]
 	// 更新玩家棋盘棋子数据
-	player.chessBoardIndex = crd.chessBoardIndex
-	player.chessManIndex = crd.chessManIndex
+	// player.chessBoardIndex = crd.chessBoardIndex
+	// player.chessManIndex = crd.chessManIndex
 
 	if !player.checkChessMan(chessMan) {
 		log.Panicf("chessman(%v) invalid\n", chessMan)

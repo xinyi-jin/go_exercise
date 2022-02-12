@@ -3,23 +3,23 @@ package chinachess
 import "log"
 
 type ChinaChessPlayerData struct {
-	pos             int                 // 玩家座位
-	cm              int                 // 当前棋子
-	cmPos           int                 // 当前棋子位置
-	cmType          int                 // 当前棋子类型
-	cmDropPoints    []int               // 当前棋子可落子点
-	cmEat           bool                // 是否吃子
-	cmEated         int                 // 被吃的棋子
-	nextCmType      int                 // 落点棋子类型
-	chessBoardIndex [CHESSBOARD_NUM]int // 棋盘索引数组
-	chessManIndex   [CHESSMAN_NUM]int   // 棋子索引数组
+	pos          int   // 玩家座位
+	cm           int   // 当前棋子
+	cmPos        int   // 当前棋子位置
+	cmType       int   // 当前棋子类型
+	cmDropPoints []int // 当前棋子可落子点
+	cmEat        bool  // 是否吃子
+	cmEated      int   // 被吃的棋子
+	nextCmType   int   // 落点棋子类型
+	// chessBoardIndex [CHESSBOARD_NUM]int // 棋盘索引数组
+	// chessManIndex   [CHESSMAN_NUM]int   // 棋子索引数组
 }
 
 func NewChinaChessPlayerData(pos int, chessBoardIndex [CHESSBOARD_NUM]int, chessManIndex [CHESSMAN_NUM]int) *ChinaChessPlayerData {
 	return &ChinaChessPlayerData{
-		pos:             pos,
-		chessBoardIndex: chessBoardIndex,
-		chessManIndex:   chessManIndex,
+		pos: pos,
+		// chessBoardIndex: chessBoardIndex,
+		// chessManIndex:   chessManIndex,
 	}
 }
 
@@ -31,8 +31,8 @@ func (cpd *ChinaChessPlayerData) clear() {
 	cpd.cmEat = false
 	cpd.cmEated = 0
 	cpd.nextCmType = 0
-	cpd.chessBoardIndex = [CHESSBOARD_NUM]int{}
-	cpd.chessManIndex = [CHESSMAN_NUM]int{}
+	// cpd.chessBoardIndex = [CHESSBOARD_NUM]int{}
+	// cpd.chessManIndex = [CHESSMAN_NUM]int{}
 }
 
 // 搜索落子点 每种棋子对应不同的落子点数量
@@ -245,7 +245,7 @@ func (cpd *ChinaChessPlayerData) searchDropPointsSoldiers() []int {
 
 // 通过棋子位置获取棋子类型
 func (cpd *ChinaChessPlayerData) getCmTypeByCmPos(cmPos int) int {
-	return cpd.chessBoardIndex[cmPos]
+	return /* cpd.chessBoardIndex[cmPos] */ -1
 }
 
 // 校验落点
@@ -275,7 +275,7 @@ func (cpd *ChinaChessPlayerData) checkPlayerChessMan(chessMan int) bool {
 
 // 校验棋子类型是否和玩家相匹配
 func (cpd *ChinaChessPlayerData) checkPlayerChessManType(chessManPos int) bool {
-	return cpd.pos == 0 && cpd.chessBoardIndex[chessManPos] > 0
+	return cpd.pos == 0 /* && cpd.chessBoardIndex[chessManPos] > 0 */
 }
 
 // 校验棋子
@@ -285,19 +285,19 @@ func (cpd *ChinaChessPlayerData) checkChessMan(chessMan int) bool {
 
 // 校验棋子位置
 func (cpd *ChinaChessPlayerData) checkChessManPos(chessMan int) bool {
-	return cpd.chessManIndex[chessMan] != -1
+	return /* cpd.chessManIndex[chessMan] != -1 */ true
 }
 
 // 校验棋子类型 -1不存在 0红方 1 黑方
 func (cpd *ChinaChessPlayerData) checkChessManType(chessManPos int) int {
-	switch {
+	/* switch {
 	case cpd.chessBoardIndex[chessManPos] == 0:
 		return -1
 	case cpd.chessBoardIndex[chessManPos] > 0:
 		return 0
 	case cpd.chessBoardIndex[chessManPos] < 0:
 		return 1
-	}
+	} */
 	return -1
 }
 
@@ -314,12 +314,12 @@ func (cpd *ChinaChessPlayerData) inDropPoints(nextPos int) bool {
 // 是否可以落子 -1 不可以落子
 func (cpd *ChinaChessPlayerData) CanDropPoint(x, y int) int {
 	if checkxy(x, y) {
-		dropPoint := getCmPosByxy(x, y)
+		/* dropPoint := getCmPosByxy(x, y)
 		if cpd.chessBoardIndex[dropPoint] == 0 { // 落点无棋子
 			return dropPoint
 		} else if cpd.chessBoardIndex[dropPoint] > 0 && cpd.pos == 1 || cpd.chessBoardIndex[dropPoint] < 0 && cpd.pos == 0 { // 吃子
 			return dropPoint
-		}
+		} */
 	}
 	return -1
 }
@@ -327,10 +327,10 @@ func (cpd *ChinaChessPlayerData) CanDropPoint(x, y int) int {
 // 拌马腿/堵象眼
 func (cpd *ChinaChessPlayerData) IsBanFoot(x, y int) bool {
 	if checkxy(x, y) {
-		dropPoint := getCmPosByxy(x, y)
+		/* dropPoint := getCmPosByxy(x, y)
 		if cpd.chessBoardIndex[dropPoint] == 0 { // 落点无棋子
 			return false
-		}
+		} */
 	}
 	return true
 }
