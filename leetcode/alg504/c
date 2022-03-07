@@ -1,0 +1,10 @@
+mode: set
+go_exercise/leetcode/alg504/convertToBase7.go:29.37,31.13 2 1
+go_exercise/leetcode/alg504/convertToBase7.go:34.2,34.6 1 1
+go_exercise/leetcode/alg504/convertToBase7.go:43.2,43.35 1 1
+go_exercise/leetcode/alg504/convertToBase7.go:46.2,46.12 1 1
+go_exercise/leetcode/alg504/convertToBase7.go:31.13,33.3 1 1
+go_exercise/leetcode/alg504/convertToBase7.go:34.6,37.15 3 1
+go_exercise/leetcode/alg504/convertToBase7.go:37.15,39.9 2 1
+go_exercise/leetcode/alg504/convertToBase7.go:43.35,45.3 1 1
+go_exercise/leetcode/alg504/convertToBase7.go:50.39,52.2 1 1
