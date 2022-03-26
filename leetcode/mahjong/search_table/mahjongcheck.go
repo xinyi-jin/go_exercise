@@ -586,6 +586,6 @@ func loadTestData() {
 }
 
 func init() {
-	loadHuCards()
+	// loadHuCards()
 	// loadTestData()
 }
