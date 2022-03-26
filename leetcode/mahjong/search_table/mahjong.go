@@ -6,8 +6,12 @@ import (
 	"log"
 	"os"
 	"sort"
+	"strconv"
 	"time"
 )
+
+var gen_sum int
+var gen_base_sum int
 
 var g_cards = []int{
 	0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, /* 筒 */
@@ -30,6 +34,14 @@ func count(cards []int) []int {
 		nums[value2index(v)]++
 	}
 	return nums
+}
+
+func getCardsValue(cards []int) []int {
+	res := make([]int, 0)
+	for _, v := range cards {
+		res = append(res, value2index(v)+1)
+	}
+	return res
 }
 
 // 优化过内存后的算法 存储的是除碰杠后剩余手牌，不区分花色
@@ -103,15 +115,10 @@ func checkIsValid(nums []int) bool {
 	return true
 }
 
-var gen_sum int
-
-func encode(encodeData map[int]int, cards []int) {
+func encode(encodeData map[uint]int, cards []int) {
 	nums := count(cards)
 	if checkIsValid(nums) {
-		encodeData[calcKey(nums)] = 1
-		// 以下两种算法未优化内存
-		// encodeData[calcCardsKeyBase(cards)] = 1
-		// encodeData[calcKeyBase(nums)] = 1
+		encodeData[uint(calcKey(nums))] = 1
 		gen_sum++
 	}
 }
@@ -144,8 +151,8 @@ func getGroups() [][]int {
 }
 
 /* 将所有胡牌牌型编码成json数据 key共计9306*/
-func encodeCards(pairs [][]int, groups [][]int) map[int]int {
-	encodeData := make(map[int]int, 800)
+func encodeCards(pairs [][]int, groups [][]int) map[uint]int {
+	encodeData := make(map[uint]int, 800)
 	/* for _, p := range pairs {
 		encode(encodeData, p)
 
@@ -250,9 +257,10 @@ func HuCards2JSON() {
 
 	pairs := getPairs()
 	groups := getGroups()
-	m := encodeCards(pairs, groups)
+	// m := encodeCards(pairs, groups)
+	m := encodeCardsBase(pairs, groups)
 
-	f, err := os.Create("huCards.json")
+	f, err := os.Create("huCards1.json")
 	if err != nil {
 		log.Fatal("Create", err)
 	}
@@ -264,27 +272,69 @@ func HuCards2JSON() {
 	enc.Encode(m)
 
 	fmt.Printf("cost time:%v s\n", float32(float32(time.Now().UTC().UnixNano()-begin)/1000000000))
-	fmt.Println(gen_sum)
+	fmt.Printf("gen_sum:%v, gen_base_sum:%v", gen_sum, gen_base_sum)
 }
 
 // 以下两种算法未优化内存
-// 存储牌值 每张牌占6字节，14张牌占84字节
-func calcCardsKeyBase(cards []int) int {
-	x, pos := 0, 0
-	sort.Ints(cards)
+// 存储牌值 每张牌占6字节，14张牌占84字节  此方案会产生int数据无法计算64位以后的情况
+// 优化为生成类型为string的key值
+func calcKeyBase(cards []int) string {
+	res := ""
 	for _, v := range cards {
-		x |= v << pos
-		pos += 6
+		if res != "" {
+			res += "-"
+		}
+		res += strconv.Itoa(v)
 	}
-	return x
+	return res
 }
 
-// 存储牌张 牌张最多4 占3字节，34种牌占102字节
-func calcKeyBase(nums []int) int {
-	x, pos := 0, 0
-	for _, v := range nums {
-		x |= v << pos
-		pos += 3
+/* 将所有胡牌牌型编码成json数据 key类型为字符串*/
+func encodeCardsBase(pairs [][]int, groups [][]int) map[string]int {
+	encodeData := make(map[string]int, 800)
+	n := len(groups)
+	for _, p := range pairs {
+		encodeBase(encodeData, p)
+
+		for i := 0; i < n; i++ {
+			var a_temp []int
+			a_temp = append(a_temp, p...)
+			a_temp = append(a_temp, groups[i]...)
+			encodeBase(encodeData, a_temp)
+
+			for j := i; j < n; j++ {
+				var b_temp []int
+				b_temp = append(b_temp, a_temp...)
+				b_temp = append(b_temp, groups[j]...)
+				encodeBase(encodeData, b_temp)
+
+				for x := j; x < n; x++ {
+					var c_temp []int
+					c_temp = append(c_temp, b_temp...)
+					c_temp = append(c_temp, groups[x]...)
+					encodeBase(encodeData, c_temp)
+
+					for y := x; y < n; y++ {
+						var d_temp []int
+						d_temp = append(d_temp, c_temp...)
+						d_temp = append(d_temp, groups[y]...)
+						encodeBase(encodeData, d_temp)
+					}
+				}
+			}
+		}
 	}
-	return x
+	return encodeData
+}
+
+func encodeBase(encodeData map[string]int, cards []int) {
+	nums := count(cards)
+	if checkIsValid(nums) {
+		temp := getCardsValue(cards)
+		sort.Ints(temp)
+		encodeData[calcKeyBase(temp)] = 1
+		// encodeData[calcKeyBase(nums)] = 1
+
+		gen_base_sum++
+	}
 }

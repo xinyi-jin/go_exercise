@@ -13,11 +13,14 @@ import (
 
 // 尝试检验生成表算法正确性，生成的key是否有不能胡的组合
 var hu_table map[int]int
-var hu_table1 map[int]int
-var hu_table2 map[int]int
+var hu_table1 map[string]int
+var hu_table2 map[string]int
 
 var testData1 map[int][]int
 var testData2 map[int][]int
+var testData3 map[int][]int
+
+const HANDCARDSNUM = 8
 
 var all_cards = []int{
 	0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, /* 筒 */
@@ -287,6 +290,8 @@ func getAllNotHuCombine() [][]int {
 		if checkIsValid(nums) {
 			if _, ok := hu_table[calcKey(nums)]; ok {
 				index++
+			} else {
+				nohu = append(nohu, v)
 			}
 		}
 	}
@@ -312,36 +317,6 @@ func HuCombine2JSON() {
 	}
 
 	f, err := os.Create("huCombine.json")
-	if err != nil {
-		log.Fatal("Create", err)
-	}
-	defer f.Close()
-
-	enc := json.NewEncoder(f)
-	fmt.Println("map len = ", len(m))
-
-	enc.Encode(m)
-
-	fmt.Printf("cost time:%v s\n", float32(float32(time.Now().UTC().UnixNano()-begin)/1000000000))
-	fmt.Println(gen_sum)
-}
-
-func Combine2JSON() {
-	begin := time.Now().UTC().UnixNano()
-
-	pairs := getPairs()
-	groups := getGroups()
-	hu := getAllCombine(pairs, groups)
-
-	m := make(map[int][]int)
-	for i, v := range hu {
-		nums := count(v)
-		if checkIsValid(nums) {
-			m[i] = v
-		}
-	}
-
-	f, err := os.Create("Combine.json")
 	if err != nil {
 		log.Fatal("Create", err)
 	}
@@ -403,6 +378,7 @@ func GetAllNotHuCombine() [][]int {
 	return nohu
 }
 
+// 程序硬件内存达不到
 func NoHuCombine2JSON() {
 	begin := time.Now().UTC().UnixNano()
 	nohu := getAllNotHuCombine()
@@ -439,7 +415,7 @@ func TestData2JSON(data [][]int) {
 		m[i] = v
 	}
 
-	f, err := os.Create("rand_combine_1w.json")
+	f, err := os.Create("nohu_1w.json")
 	if err != nil {
 		log.Fatal("Create", err)
 	}
@@ -452,23 +428,103 @@ func TestData2JSON(data [][]int) {
 	fmt.Printf("testData cost time:%v s\n", float32(float32(time.Now().UTC().UnixNano()-begin)/1000000000))
 }
 
-func RandCombine() []int {
-	rand.Shuffle(len(all_cards), func(i, j int) {
-		rand.Seed(time.Now().UnixNano())
-		all_cards[i], all_cards[j] = all_cards[j], all_cards[i]
-	})
-	return all_cards[:15]
+// 由于批量生成数据时候使用slice时，指针指向地址都是一个，
+// 会导致所有数据都是最后生成的结果，这里使用数组结构在外层做切片转化
+func RandCombine(n int) [][HANDCARDSNUM]int {
+	rand.Seed(time.Now().UnixNano())
+	res := make([][HANDCARDSNUM]int, n)
+	for i := 0; i < n; i++ {
+		rand.Shuffle(len(all_cards), func(i, j int) {
+			all_cards[i], all_cards[j] = all_cards[j], all_cards[i]
+		})
+		for j := 0; j < HANDCARDSNUM; j++ {
+			res[i][j] = all_cards[j]
+		}
+		// fmt.Printf("res:%v\n temp:%v", res, temp)
+	}
+	return res
+}
+
+func changeSlice(data [][HANDCARDSNUM]int) [][]int {
+	res := make([][]int, len(data))
+	for i, v := range data {
+		cardsTemp := []int{}
+		for _, c := range v {
+			cardsTemp = append(cardsTemp, c)
+		}
+		res[i] = cardsTemp
+	}
+	return res
+}
+
+func getNoHuCombine(cards [][]int) [][]int {
+	index, index1, index2 := 0, 0, 0
+	nohu := make([][]int, 0)
+
+	for _, v := range cards {
+		nums := count(v)
+		if checkIsValid(nums) {
+			flag, flag1, flag2 := 0, 0, 0
+			if _, ok := hu_table[calcKey(nums)]; ok {
+				index++
+				flag++
+			} else {
+				nohu = append(nohu, v)
+			}
+			cards := getCardsValue(v)
+			sort.Ints(cards)
+			if _, ok := hu_table1[calcKeyBase(cards)]; ok {
+				index1++
+				flag1++
+			} else {
+				nohu = append(nohu, v)
+			}
+			if _, ok := hu_table2[calcKeyBase(nums)]; ok {
+				index2++
+				flag2++
+			} else {
+				nohu = append(nohu, v)
+			}
+			if n := flag + flag1 + flag2; n > 0 && n < 2 {
+				fmt.Printf("not same %v\n", v)
+				fmt.Printf("cnt %v %v %v \n", flag, flag1, flag2)
+			}
+		}
+	}
+
+	// 直接记成功的个数，==9306 即验证成功
+	fmt.Printf("HuCombine end times:%v %v %v\n", index, index1, index2)
+	return nohu
 }
 
 func RunTest() {
 	// testData := getAllDoubleCards()
 	// testData := getAllThreeCards()
 	// testData := testGetAllCombine(testData1, testData2)
-	testData := make([][]int, 0)
-	for i := 0; i < 10000; i++ {
-		testData = append(testData, RandCombine())
-	}
-	TestData2JSON(testData)
+
+	// temp := RandCombine(10000)
+	// testData := changeSlice(temp)
+	// fmt.Println(testData)
+
+	// testData := getNoHuCombine(testData3)
+
+	temp := changeSlice(RandCombine(5000000))
+	getNoHuCombine(temp)
+
+	// TestData2JSON(testData)
+
+	// 测试单个数据
+	/* data := getCardsValue([]int{1, 33, 5, 4, 24, 6, 25, 1})
+	cards := getCardsValue(data)
+	sort.Ints(cards)
+	key := calcKeyBase(cards)
+	fmt.Println(cards)
+	fmt.Println("key", key)
+	if _, ok := hu_table1[key]; ok {
+		fmt.Println("sucess")
+	} else {
+		fmt.Println("failed")
+	} */
 }
 
 func loadHuCards() {
@@ -518,9 +574,18 @@ func loadTestData() {
 	bytes2, _ := ioutil.ReadAll(f2)
 	json.Unmarshal([]byte(bytes2), &testData2)
 	fmt.Println("three len ", len(testData2))
+
+	f3, err := os.Open("E:/gocode/trunk/src/go_exercise/leetcode/mahjong/rand_combine_1w.json")
+	if err != nil {
+		log.Fatal("Open3", err)
+	}
+	defer f3.Close()
+	bytes3, _ := ioutil.ReadAll(f3)
+	json.Unmarshal([]byte(bytes3), &testData3)
+	fmt.Println("rand_combine_1w len ", len(testData3))
 }
 
 func init() {
-	// loadHuCards()
-	loadTestData()
+	loadHuCards()
+	// loadTestData()
 }
