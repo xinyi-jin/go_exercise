@@ -1,0 +1,38 @@
+package reback
+
+const (
+	// 小牌
+	BEARD_SMALL_1 int64 = iota
+	BEARD_SMALL_2
+	BEARD_SMALL_3
+	BEARD_SMALL_4
+	BEARD_SMALL_5
+	BEARD_SMALL_6
+	BEARD_SMALL_7
+	BEARD_SMALL_8
+	BEARD_SMALL_9
+	BEARD_SMALL_A
+
+	// 大牌
+	BEARD_BIG_1
+	BEARD_BIG_2
+	BEARD_BIG_3
+	BEARD_BIG_4
+	BEARD_BIG_5
+	BEARD_BIG_6
+	BEARD_BIG_7
+	BEARD_BIG_8
+	BEARD_BIG_9
+	BEARD_BIG_A
+
+	// 最大20
+	BEARD_MAX
+)
+
+const (
+	HUXI_KAN_SMALL  = 3 // 小坎
+	HUXI_KAN_BIG    = 6 // 大坎
+	HUXI_SHUN_SMALL = 3 // 小顺
+	HUXI_SHUN_BIG   = 6 // 大顺
+	HUXI_27A        = 3 // 27A
+)
