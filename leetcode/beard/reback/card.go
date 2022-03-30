@@ -30,16 +30,25 @@ const (
 )
 
 const (
-	HUXI_KAN_SMALL      = 0 // 小坎
-	HUXI_KAN_BIG        = 0 // 大坎
-	HUXI_PENG_SMALL     = 1 // 小碰
-	HUXI_PENG_BIG       = 3 // 大碰
-	HUXI_WEI_SMALL      = 3 // 小偎
-	HUXI_WEI_BIG        = 6 // 大偎
-	HUXI_PAO_SMALL      = 6 // 小跑
-	HUXI_PAO_BIG        = 9 // 大跑
-	HUXI_TI_SMALL       = 9 // 小提
-	HUXI_TI_BIG         = 9 // 大提
-	HUXI_SHUN_27A_SMALL = 3 // 小123/小27A
-	HUXI_SHUN_27A_BIG   = 6 // 大123/大27A
+	HUXI_KAN_SMALL     = 0 // 小坎
+	HUXI_KAN_BIG       = 0 // 大坎
+	HUXI_SHUN_SMALL    = 0 // 除123之外的小顺子
+	HUXI_SHUN_BIG      = 0 // 除123之外的打顺子
+	HUXI_PENG_SMALL    = 1 // 小碰
+	HUXI_PENG_BIG      = 3 // 大碰
+	HUXI_WEI_SMALL     = 3 // 小偎
+	HUXI_WEI_BIG       = 6 // 大偎
+	HUXI_PAO_SMALL     = 6 // 小跑
+	HUXI_PAO_BIG       = 9 // 大跑
+	HUXI_TI_SMALL      = 9 // 小提
+	HUXI_TI_BIG        = 9 // 大提
+	HUXI_123_27A_SMALL = 3 // 小123/小27A
+	HUXI_123_27A_BIG   = 6 // 大123/大27A
+)
+
+const (
+	GROUPTYPE_27A_SMALL = iota
+	GROUPTYPE_27A_BIG
+	GROUPTYPE_SHUN_SMALL
+	GROUPTYPE_SHUN_BIG
 )

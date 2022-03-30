@@ -5,9 +5,12 @@ import (
 )
 
 type HuHandResult struct {
-	Items [7]Item
-	// Flags  [7]int64
-	SeqCnt int
+	Sequence [7]Group
+	SeqCnt   int
+}
+type Group struct {
+	Cards [4]int64 // 当前组牌值
+	Flag  int64    // 组牌类型标记
 }
 
 type Item struct {
@@ -53,11 +56,11 @@ func getShunHuXiBigNot27A(pool []int, num int) int {
 		}
 		tempPool[i+1] -= n
 		tempPool[i+2] -= n
-		/* if i > 0 {
+		if i > 0 {
 			otherShunNum++
-		} */
+		}
 	}
-	return (num + otherShunNum) * HUXI_SHUN_27A_BIG
+	return num*HUXI_123_27A_BIG + otherShunNum*HUXI_SHUN_BIG
 }
 
 func getShunHuXiBig(pool []int) int {
@@ -91,7 +94,7 @@ func getShunHuXiBig(pool []int) int {
 			break
 		}
 
-		huXi123 := n_123 * HUXI_SHUN_27A_BIG
+		huXi123 := n_123 * HUXI_123_27A_BIG
 		if huXi27A := getShunHuXiBigNot27A(tempPool, i); huXi27A >= 0 {
 			if huXi123+huXi27A > maxHuxi {
 				maxHuxi = huXi123 + huXi27A
@@ -150,7 +153,9 @@ func getShunHuXiSmall(pool []int) int {
 				pool[curCard+2]--
 				find = true
 				if curCard == BEARD_SMALL_1 {
-					items[pos].huxi = HUXI_SHUN_27A_SMALL
+					items[pos].huxi = HUXI_123_27A_SMALL
+				} else {
+					items[pos].huxi = HUXI_SHUN_SMALL
 				}
 				continue
 			}
@@ -176,7 +181,7 @@ func getShunHuXiSmall(pool []int) int {
 			items[pos].i = 4
 			if curCard == BEARD_SMALL_2 && pool[BEARD_SMALL_7] > 0 && pool[BEARD_SMALL_A] > 0 {
 				items[pos].j = 4
-				items[pos].huxi = HUXI_SHUN_27A_SMALL
+				items[pos].huxi = HUXI_123_27A_SMALL
 				pool[BEARD_SMALL_2]--
 				pool[BEARD_SMALL_7]--
 				pool[BEARD_SMALL_A]--

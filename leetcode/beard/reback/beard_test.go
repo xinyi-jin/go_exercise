@@ -77,19 +77,19 @@ func Test_getShunHuXiBigNot27A(t *testing.T) {
 	}{
 		{"Test_getShunHuXiBigNot27A_01", args{[]int{
 			0, 0, 0, 1, 1, 1, 1, 1, 1, 0,
-		}, 0}, HUXI_SHUN_27A_BIG * 0},
+		}, 0}, HUXI_123_27A_BIG * 0},
 		{"Test_getShunHuXiBigNot27A_02", args{[]int{
 			0, 1, 0, 1, 1, 1, 1, 0, 0, 1,
-		}, 1}, HUXI_SHUN_27A_BIG * 1},
+		}, 1}, HUXI_123_27A_BIG * 1},
 		{"Test_getShunHuXiBigNot27A_03", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		}, 0}, HUXI_SHUN_27A_BIG * 0},
+		}, 0}, HUXI_123_27A_BIG * 0},
 		{"Test_getShunHuXiBigNot27A_04", args{[]int{
 			0, 0, 0, 2, 2, 2, 0, 0, 0, 0,
-		}, 0}, HUXI_SHUN_27A_BIG * 0},
+		}, 0}, HUXI_123_27A_BIG * 0},
 		{"Test_getShunHuXiBigNot27A_05", args{[]int{
 			0, 2, 2, 2, 2, 0, 2, 0, 0, 2,
-		}, 2}, HUXI_SHUN_27A_BIG * 2},
+		}, 2}, HUXI_123_27A_BIG * 2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -112,23 +112,23 @@ func Test_getShunHuXiBig(t *testing.T) {
 		{"Test_getShunHuXiBig_01", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-		}}, HUXI_SHUN_27A_BIG * 1},
+		}}, HUXI_123_27A_BIG * 1},
 		{"Test_getShunHuXiBig_02", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
-		}}, HUXI_SHUN_27A_BIG * 1},
+		}}, HUXI_123_27A_BIG * 1},
 		{"Test_getShunHuXiBig_03", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}}, HUXI_SHUN_27A_BIG * 1},
+		}}, HUXI_123_27A_BIG * 1},
 		{"Test_getShunHuXiBig_04", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 2, 1, 0, 0, 0, 1, 0, 0, 1,
-		}}, HUXI_SHUN_27A_BIG * 2},
+		}}, HUXI_123_27A_BIG * 2},
 		{"Test_getShunHuXiBig_05", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 2, 1, 1, 1, 1, 1, 0, 0, 1,
-		}}, HUXI_SHUN_27A_BIG * 2},
+		}}, HUXI_123_27A_BIG * 2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -151,31 +151,31 @@ func Test_getShunHuXiSmall(t *testing.T) {
 		{"Test_getShunHuXiSmall_01", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-		}}, HUXI_SHUN_27A_BIG * 1},
+		}}, HUXI_123_27A_BIG * 1},
 		{"Test_getShunHuXiSmall_02", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
-		}}, HUXI_SHUN_27A_BIG * 1},
+		}}, HUXI_123_27A_BIG * 1},
 		{"Test_getShunHuXiSmall_03", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}}, HUXI_SHUN_27A_BIG * 1},
+		}}, HUXI_123_27A_BIG * 1},
 		{"Test_getShunHuXiSmall_04", args{[]int{
 			0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}}, HUXI_SHUN_27A_BIG * 1},
+		}}, HUXI_123_27A_BIG * 1},
 		{"Test_getShunHuXiSmall_05", args{[]int{
 			0, 1, 0, 1, 1, 1, 1, 0, 0, 1,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1},
+		}}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1},
 		{"Test_getShunHuXiSmall_06", args{[]int{
 			0, 2, 0, 1, 1, 1, 2, 0, 0, 2,
 			1, 1, 1, 0, 0, 1, 1, 1, 0, 0,
-		}}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*2},
+		}}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*2},
 		{"Test_getShunHuXiSmall_07", args{[]int{
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1},
+		}}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -224,19 +224,19 @@ func TestCalcHuXi(t *testing.T) {
 		{"TestCalcHuXi_Special_07", args{[]int{
 			0, 1, 0, 0, 0, 0, 1, 0, 0, 1,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		}, 3}, HUXI_SHUN_27A_SMALL * 1}, // 单吊27A胡
+		}, 3}, HUXI_123_27A_SMALL * 1}, // 单吊27A胡
 		{"TestCalcHuXi_Special_08", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 1, 0, 0, 0, 0, 1, 0, 0, 1,
-		}, 3}, HUXI_SHUN_27A_BIG * 1}, // 单吊27A胡
+		}, 3}, HUXI_123_27A_BIG * 1}, // 单吊27A胡
 		{"TestCalcHuXi_Special_09", args{[]int{
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		}, 3}, HUXI_SHUN_27A_SMALL * 1}, // 单吊123胡
+		}, 3}, HUXI_123_27A_SMALL * 1}, // 单吊123胡
 		{"TestCalcHuXi_Special_0A", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}, 3}, HUXI_SHUN_27A_BIG * 1}, // 单吊123胡
+		}, 3}, HUXI_123_27A_BIG * 1}, // 单吊123胡
 
 		// 特殊牌型 不胡
 		{"TestCalcHuXi_Special_11", args{[]int{
@@ -284,125 +284,125 @@ func TestCalcHuXi(t *testing.T) {
 		{"TestCalcHuXi_01", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-		}, 9}, HUXI_SHUN_27A_BIG * 1},
+		}, 9}, HUXI_123_27A_BIG * 1},
 		{"TestCalcHuXi_02", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
-		}, 6}, HUXI_SHUN_27A_BIG * 1},
+		}, 6}, HUXI_123_27A_BIG * 1},
 		{"TestCalcHuXi_03", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}, 3}, HUXI_SHUN_27A_BIG * 1},
+		}, 3}, HUXI_123_27A_BIG * 1},
 		{"TestCalcHuXi_04", args{[]int{
 			0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}, 6}, HUXI_SHUN_27A_BIG * 1},
+		}, 6}, HUXI_123_27A_BIG * 1},
 		{"TestCalcHuXi_05", args{[]int{
 			0, 1, 0, 1, 1, 1, 1, 0, 0, 1,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}, 9}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1},
+		}, 9}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1},
 		{"TestCalcHuXi_06", args{[]int{
 			0, 2, 0, 1, 1, 1, 2, 0, 0, 2,
 			1, 1, 1, 0, 0, 1, 1, 1, 0, 0,
-		}, 15}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*2},
+		}, 15}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*2},
 		{"TestCalcHuXi_07", args{[]int{
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}, 6}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1},
+		}, 6}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1},
 
 		// 带将牌胡
 		{"TestCalcHuXi_11", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-		}, 11}, HUXI_SHUN_27A_BIG * 1},
+		}, 11}, HUXI_123_27A_BIG * 1},
 		{"TestCalcHuXi_12", args{[]int{
 			0, 0, 0, 0, 2, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
-		}, 8}, HUXI_SHUN_27A_BIG * 1},
+		}, 8}, HUXI_123_27A_BIG * 1},
 		{"TestCalcHuXi_13", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 2, 0, 0, 0, 0,
-		}, 5}, HUXI_SHUN_27A_BIG * 1},
+		}, 5}, HUXI_123_27A_BIG * 1},
 		{"TestCalcHuXi_14", args{[]int{
 			2, 0, 0, 1, 1, 1, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-		}, 8}, HUXI_SHUN_27A_BIG * 1},
+		}, 8}, HUXI_123_27A_BIG * 1},
 		{"TestCalcHuXi_15", args{[]int{
 			0, 1, 0, 1, 1, 1, 1, 0, 0, 1,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 2,
-		}, 11}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1},
+		}, 11}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1},
 		{"TestCalcHuXi_16", args{[]int{
 			0, 2, 0, 1, 1, 1, 2, 0, 0, 2,
 			1, 1, 1, 0, 2, 1, 1, 1, 0, 0,
-		}, 17}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*2},
+		}, 17}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*2},
 		{"TestCalcHuXi_17", args{[]int{
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 2, 0, 0,
-		}, 8}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1},
+		}, 8}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1},
 
 		// 带将牌胡+带坎
 		{"TestCalcHuXi_21", args{[]int{
 			0, 0, 0, 3, 0, 0, 0, 0, 0, 2,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-		}, 14}, HUXI_SHUN_27A_BIG*1 + HUXI_KAN_SMALL*1},
+		}, 14}, HUXI_123_27A_BIG*1 + HUXI_KAN_SMALL*1},
 		{"TestCalcHuXi_22", args{[]int{
 			0, 0, 0, 0, 2, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 3, 0, 1, 1, 1,
-		}, 11}, HUXI_SHUN_27A_BIG*1 + HUXI_KAN_BIG*1},
+		}, 11}, HUXI_123_27A_BIG*1 + HUXI_KAN_BIG*1},
 		{"TestCalcHuXi_23", args{[]int{
 			0, 0, 0, 3, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 3, 0, 2, 0, 0, 0, 0,
-		}, 11}, HUXI_SHUN_27A_BIG*1 + HUXI_KAN_BIG*1 + HUXI_KAN_SMALL*1},
+		}, 11}, HUXI_123_27A_BIG*1 + HUXI_KAN_BIG*1 + HUXI_KAN_SMALL*1},
 		{"TestCalcHuXi_24", args{[]int{
 			2, 0, 0, 1, 1, 1, 0, 0, 0, 3,
 			1, 1, 1, 0, 0, 0, 0, 3, 0, 3,
-		}, 17}, HUXI_SHUN_27A_BIG*1 + HUXI_KAN_BIG*2 + HUXI_KAN_SMALL*1},
+		}, 17}, HUXI_123_27A_BIG*1 + HUXI_KAN_BIG*2 + HUXI_KAN_SMALL*1},
 		{"TestCalcHuXi_25", args{[]int{
 			3, 1, 0, 1, 1, 1, 1, 0, 0, 1,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 2,
-		}, 14}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1 + HUXI_KAN_SMALL*1},
+		}, 14}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1 + HUXI_KAN_SMALL*1},
 		{"TestCalcHuXi_26", args{[]int{
 			0, 2, 0, 1, 1, 1, 2, 0, 0, 2,
 			1, 1, 1, 3, 2, 1, 1, 1, 0, 0,
-		}, 20}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*2 + HUXI_KAN_BIG*1},
+		}, 20}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*2 + HUXI_KAN_BIG*1},
 		{"TestCalcHuXi_27", args{[]int{
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 2, 3, 3,
-		}, 14}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1 + HUXI_KAN_BIG*2},
+		}, 14}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1 + HUXI_KAN_BIG*2},
 
 		// 不带将牌胡+带坎
 		{"TestCalcHuXi_31", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 3,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-		}, 12}, HUXI_SHUN_27A_BIG*1 + HUXI_KAN_SMALL*1},
+		}, 12}, HUXI_123_27A_BIG*1 + HUXI_KAN_SMALL*1},
 		{"TestCalcHuXi_32", args{[]int{
 			3, 0, 0, 0, 3, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
-		}, 12}, HUXI_SHUN_27A_BIG*1 + HUXI_KAN_SMALL*2},
+		}, 12}, HUXI_123_27A_BIG*1 + HUXI_KAN_SMALL*2},
 		{"TestCalcHuXi_33", args{[]int{
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			1, 1, 1, 0, 0, 0, 0, 0, 0, 3,
-		}, 6}, HUXI_SHUN_27A_BIG*1 + HUXI_KAN_BIG*1},
+		}, 6}, HUXI_123_27A_BIG*1 + HUXI_KAN_BIG*1},
 		{"TestCalcHuXi_34", args{[]int{
 			0, 0, 0, 1, 1, 1, 0, 0, 0, 0,
 			1, 1, 1, 0, 3, 0, 0, 3, 0, 0,
-		}, 12}, HUXI_SHUN_27A_BIG*1 + HUXI_KAN_BIG*2},
+		}, 12}, HUXI_123_27A_BIG*1 + HUXI_KAN_BIG*2},
 		{"TestCalcHuXi_35", args{[]int{
 			0, 1, 0, 1, 1, 1, 1, 0, 0, 1,
 			1, 1, 1, 3, 0, 0, 0, 0, 0, 0,
-		}, 12}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1 + HUXI_KAN_BIG*1},
+		}, 12}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1 + HUXI_KAN_BIG*1},
 		{"TestCalcHuXi_36", args{[]int{
 			0, 2, 0, 1, 1, 1, 2, 0, 0, 2,
 			1, 1, 1, 0, 0, 1, 1, 1, 0, 3,
-		}, 18}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*2 + HUXI_KAN_BIG*1},
+		}, 18}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*2 + HUXI_KAN_BIG*1},
 		{"TestCalcHuXi_37", args{[]int{
 			1, 1, 1, 0, 3, 0, 0, 0, 0, 3,
 			1, 1, 1, 0, 3, 0, 0, 0, 0, 3,
-		}, 18}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*1 + HUXI_KAN_SMALL*2 + HUXI_KAN_BIG*2},
+		}, 18}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*1 + HUXI_KAN_SMALL*2 + HUXI_KAN_BIG*2},
 		{"TestCalcHuXi_38", args{[]int{
 			0, 2, 0, 1, 1, 1, 2, 0, 0, 2,
 			1, 1, 1, 0, 0, 1, 1, 1, 3, 3,
-		}, 21}, HUXI_SHUN_27A_BIG*1 + HUXI_SHUN_27A_SMALL*2 + HUXI_KAN_BIG*2},
+		}, 21}, HUXI_123_27A_BIG*1 + HUXI_123_27A_SMALL*2 + HUXI_KAN_BIG*2},
 
 		// 不带将牌不胡
 		{"TestCalcHuXi_41", args{[]int{
