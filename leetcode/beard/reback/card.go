@@ -30,9 +30,16 @@ const (
 )
 
 const (
-	HUXI_KAN_SMALL  = 3 // 小坎
-	HUXI_KAN_BIG    = 6 // 大坎
-	HUXI_SHUN_SMALL = 3 // 小顺
-	HUXI_SHUN_BIG   = 6 // 大顺
-	HUXI_27A        = 3 // 27A
+	HUXI_KAN_SMALL      = 0 // 小坎
+	HUXI_KAN_BIG        = 0 // 大坎
+	HUXI_PENG_SMALL     = 1 // 小碰
+	HUXI_PENG_BIG       = 3 // 大碰
+	HUXI_WEI_SMALL      = 3 // 小偎
+	HUXI_WEI_BIG        = 6 // 大偎
+	HUXI_PAO_SMALL      = 6 // 小跑
+	HUXI_PAO_BIG        = 9 // 大跑
+	HUXI_TI_SMALL       = 9 // 小提
+	HUXI_TI_BIG         = 9 // 大提
+	HUXI_SHUN_27A_SMALL = 3 // 小123/小27A
+	HUXI_SHUN_27A_BIG   = 6 // 大123/大27A
 )

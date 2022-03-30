@@ -33,71 +33,68 @@ func getKanHuxi(pool []int) int {
 }
 
 func getShunHuXiBigNot27A(pool []int, num int) int {
-	tempCards := make([]int, 10)
-	copy(tempCards, pool[:10])
-	tempCards[1] -= num
-	tempCards[6] -= num
-	tempCards[9] -= num
+	tempPool := make([]int, 10)
+	copy(tempPool, pool)
+	tempPool[1] -= num
+	tempPool[6] -= num
+	tempPool[9] -= num
 
-	cnt := 0
+	otherShunNum := 0
 	for i := 0; i < 10; i++ {
-		n := tempCards[i]
+		n := tempPool[i]
 		if n == 0 {
 			continue
 		}
 		if i+2 >= 10 {
 			return -1
-			// break
 		}
-		if tempCards[i+1] < n || tempCards[i+2] < tempCards[i+1] {
+		if tempPool[i+1] < n || tempPool[i+2] < tempPool[i+1] {
 			return -1
-			// continue
 		}
-		tempCards[i+1] -= n
-		tempCards[i+2] -= n
-		if i == 0 {
-			cnt += n
-		}
+		tempPool[i+1] -= n
+		tempPool[i+2] -= n
+		/* if i > 0 {
+			otherShunNum++
+		} */
 	}
-	return cnt * HUXI_SHUN_BIG
+	return (num + otherShunNum) * HUXI_SHUN_27A_BIG
 }
 
 func getShunHuXiBig(pool []int) int {
-	/* if pool[BEARD_BIG_1] > pool[BEARD_BIG_2] || pool[BEARD_BIG_1] > pool[BEARD_BIG_3] {
+	if pool[BEARD_BIG_1] > pool[BEARD_BIG_2] || pool[BEARD_BIG_1] > pool[BEARD_BIG_3] {
 		return -1
-	} */
+	}
 
 	sum := 0
-	for i := BEARD_BIG_1; i < BEARD_MAX; i++ {
-		sum += pool[i]
+	for _, v := range pool[BEARD_BIG_1:] {
+		sum += v
 	}
 	if sum == 0 {
-		return -1
+		return 0
 	}
 
 	// 仅拆27A 和 顺子
-	tempCards := make([]int, 10)
-	copy(tempCards, pool[BEARD_BIG_1:])
-
-	/* n_123, */
-	maxHuxi := /*  tempCards[0], */ -1
-	/* tempCards[0] = 0
-	tempCards[1] -= n_123
-	tempCards[2] -= n_123 */
+	maxHuxi := -1
+	tempPool := make([]int, 10)
+	copy(tempPool, pool[BEARD_BIG_1:])
+	n_123 := tempPool[0]
+	tempPool[0] -= n_123
+	tempPool[1] -= n_123
+	tempPool[2] -= n_123
 
 	for i := 0; i < 5; i++ {
-		copy(tempCards, pool[BEARD_BIG_1:])
-		/* tempCards[0] = 0
-		tempCards[1] -= n_123
-		tempCards[2] -= n_123 */
-		if tempCards[1] < i || tempCards[6] < i || tempCards[9] < i {
+		copy(tempPool, pool[BEARD_BIG_1:])
+		tempPool[0] -= n_123
+		tempPool[1] -= n_123
+		tempPool[2] -= n_123
+		if tempPool[1] < i || tempPool[6] < i || tempPool[9] < i {
 			break
 		}
 
-		if huXiShun := getShunHuXiBigNot27A(tempCards, i); huXiShun >= 0 {
-			huXi27A := i * HUXI_SHUN_BIG
-			if huXiShun+huXi27A > maxHuxi {
-				maxHuxi = huXiShun + huXi27A
+		huXi123 := n_123 * HUXI_SHUN_27A_BIG
+		if huXi27A := getShunHuXiBigNot27A(tempPool, i); huXi27A >= 0 {
+			if huXi123+huXi27A > maxHuxi {
+				maxHuxi = huXi123 + huXi27A
 			}
 		}
 	}
@@ -153,7 +150,7 @@ func getShunHuXiSmall(pool []int) int {
 				pool[curCard+2]--
 				find = true
 				if curCard == BEARD_SMALL_1 {
-					items[pos].huxi = HUXI_SHUN_SMALL
+					items[pos].huxi = HUXI_SHUN_27A_SMALL
 				}
 				continue
 			}
@@ -179,7 +176,7 @@ func getShunHuXiSmall(pool []int) int {
 			items[pos].i = 4
 			if curCard == BEARD_SMALL_2 && pool[BEARD_SMALL_7] > 0 && pool[BEARD_SMALL_A] > 0 {
 				items[pos].j = 4
-				items[pos].huxi = HUXI_27A
+				items[pos].huxi = HUXI_SHUN_27A_SMALL
 				pool[BEARD_SMALL_2]--
 				pool[BEARD_SMALL_7]--
 				pool[BEARD_SMALL_A]--
@@ -255,13 +252,13 @@ func CalcHuXi(pool []int, handsNum int) int {
 
 	// 带将牌
 	max := -1
-	tempCards := make([]int, BEARD_MAX)
+	tempPool := make([]int, BEARD_MAX)
 	for i := int64(0); i < BEARD_MAX; i++ {
 		if pool[i] > 1 {
-			copy(tempCards, pool)
-			tempCards[i] -= 2
+			copy(tempPool, pool)
+			tempPool[i] -= 2
 
-			otherHuXi := getShunHuXiSmall(tempCards)
+			otherHuXi := getShunHuXiSmall(tempPool)
 			/* if otherHuXi < 0 {
 				continue
 			} */
