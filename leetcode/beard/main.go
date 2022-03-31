@@ -15,7 +15,7 @@ func main() {
 	}
 
 	for _, v := range testData {
-		huxi := reback.CalcHuXi(v, 9)
+		huxi, _ := reback.CalcHuXi(v, 9)
 		fmt.Printf("huxi %v\n", huxi)
 	}
 }

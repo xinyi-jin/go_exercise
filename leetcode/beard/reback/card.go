@@ -47,8 +47,32 @@ const (
 )
 
 const (
-	GROUPTYPE_27A_SMALL = iota
-	GROUPTYPE_27A_BIG
-	GROUPTYPE_SHUN_SMALL
-	GROUPTYPE_SHUN_BIG
+	GROUPTYPE_123_27A_SMALL  int64 = iota // 小123/小27A
+	GROUPTYPE_123_27A_BIG                 // 大123/大27A
+	GROUPTYPE_SHUN_SMALL                  // 除123之外的小顺子
+	GROUPTYPE_SHUN_BIG                    // 除123之外的大顺子
+	GROUPTYPE_JIAO_aaA                    // 绞牌 两小一大
+	GROUPTYPE_JIAO_aAA                    // 绞牌 一小两大
+	GROUPTYPE_KAN_SMALL                   // 小坎
+	GROUPTYPE_KAN_BIG                     // 大坎
+	GROUPTYPE_PENG_SMALL                  // 小碰
+	GROUPTYPE_PENG_BIG                    // 大碰
+	GROUPTYPE_WEI_SMALL                   // 小偎
+	GROUPTYPE_WEI_BIG                     // 大偎
+	GROUPTYPE_CHOUWEI_SMALL               // 小臭偎
+	GROUPTYPE_CHOUWEI_BIG                 // 大臭偎
+	GROUPTYPE_PAO_SMALL                   // 小跑
+	GROUPTYPE_PAO_BIG                     // 大跑
+	GROUPTYPE_WEIPAO_SMALL                // 小偎后跑
+	GROUPTYPE_WEIPAO_BIG                  // 大偎后跑
+	GROUPTYPE_PENGPAO_SMALL               // 小碰后跑
+	GROUPTYPE_PENGPAO_BIG                 // 大碰后跑
+	GROUPTYPE_TI_SMALL                    // 小提
+	GROUPTYPE_TI_BIG                      // 大提
+	GROUPTYPE_WEITI_SMALL                 // 小偎后提
+	GROUPTYPE_WEITI_BIG                   // 大偎后提
+	GROUPTYPE_JIANG                       // 将牌
+	GROUPTYPE_QISHOUTI_SMALL              // 小起手提
+	GROUPTYPE_QISHOUTI_BIG                // 大起手提
+	GROUPTYPE_MAX                         // 最大临界值
 )
