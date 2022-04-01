@@ -11,6 +11,7 @@ type HuHandResult struct {
 type Group struct {
 	Cards [4]int64 // 当前组牌值
 	Flag  int64    // 组牌类型标记
+	HuXi  int      // 胡息
 }
 
 type Item struct {
@@ -25,6 +26,7 @@ func (hhr *HuHandResult) init() {
 		hhr.Sequence[i] = &Group{
 			Cards: [4]int64{-1, -1, -1, -1},
 			Flag:  -1,
+			HuXi:  0,
 		}
 	}
 	hhr.SeqCnt = -1
@@ -38,6 +40,7 @@ func (hhr *HuHandResult) push(cards [4]int64, flag int64) {
 	hhr.Sequence[hhr.SeqCnt] = &Group{
 		Cards: cards,
 		Flag:  flag,
+		HuXi:  getGroupHuXiByFlag(flag),
 	}
 }
 
@@ -48,8 +51,17 @@ func (hhr *HuHandResult) pop() {
 	hhr.Sequence[hhr.SeqCnt] = &Group{
 		Cards: [4]int64{-1, -1, -1, -1},
 		Flag:  -1,
+		HuXi:  0,
 	}
 	hhr.SeqCnt--
+}
+
+func getGroupHuXiByFlag(flag int64) int {
+	// 将牌，绞牌没有胡息
+	if flag == GROUPTYPE_JIANG || flag == GROUPTYPE_JIAO_aaA || flag == GROUPTYPE_JIAO_aAA {
+		return 0
+	}
+	return BeardFlagHuXiMap[flag]
 }
 
 func getKanHuxi(pool []int) (int, *HuHandResult) {
