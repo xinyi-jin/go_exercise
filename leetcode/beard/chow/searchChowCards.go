@@ -74,7 +74,7 @@ func searchChowCards(pool [beard.BEARD_MAX]int, c int64) *Node {
 			cards[1] = c + 3
 		case 9:
 			cards[0] = c - 8
-			cards[1] = c + 3
+			cards[1] = c - 3
 		}
 		if cards[0] != beard.BEARD_INVAILD {
 			res.Children = append(res.Children, NewNode(cards))

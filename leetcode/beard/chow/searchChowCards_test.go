@@ -2,6 +2,7 @@ package chow
 
 import (
 	"hnmatch/gamerule/beard"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -20,6 +21,30 @@ func Test_searchChowCards(t *testing.T) {
 			2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 			2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 		}, c: beard.BEARD_SMALL_7}, nil},
+		{"Test_searchChowCards_02", args{pool: [beard.BEARD_MAX]int{
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		}, c: beard.BEARD_SMALL_2}, nil},
+		{"Test_searchChowCards_03", args{pool: [beard.BEARD_MAX]int{
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		}, c: beard.BEARD_SMALL_7}, nil},
+		{"Test_searchChowCards_04", args{pool: [beard.BEARD_MAX]int{
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		}, c: beard.BEARD_SMALL_A}, nil},
+		{"Test_searchChowCards_05", args{pool: [beard.BEARD_MAX]int{
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		}, c: beard.BEARD_BIG_2}, nil},
+		{"Test_searchChowCards_06", args{pool: [beard.BEARD_MAX]int{
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		}, c: beard.BEARD_BIG_7}, nil},
+		{"Test_searchChowCards_07", args{pool: [beard.BEARD_MAX]int{
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		}, c: beard.BEARD_BIG_A}, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -28,5 +53,25 @@ func Test_searchChowCards(t *testing.T) {
 				got.Traver()
 			}
 		})
+	}
+}
+
+func Test_27A(t *testing.T) {
+	sourceCards := []int64{beard.BEARD_SMALL_2, beard.BEARD_SMALL_7, beard.BEARD_SMALL_A,
+		beard.BEARD_BIG_2, beard.BEARD_BIG_7, beard.BEARD_BIG_A}
+	for _, c := range sourceCards {
+		cards := []int64{beard.BEARD_INVAILD, beard.BEARD_INVAILD, c}
+		switch c % 10 {
+		case 1:
+			cards[0] = c + 5
+			cards[1] = c + 8
+		case 6:
+			cards[0] = c - 5
+			cards[1] = c + 3
+		case 9:
+			cards[0] = c - 8
+			cards[1] = c - 3
+		}
+		log.Println(cards)
 	}
 }
