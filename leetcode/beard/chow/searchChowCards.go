@@ -3,6 +3,7 @@ package chow
 import (
 	"hnmatch/gamerule/beard"
 	"log"
+	"math/rand"
 )
 
 type Node struct {
@@ -33,6 +34,36 @@ func (n *Node) Traver() {
 		}
 	}
 	dfs(n)
+}
+
+func GetChowCards(pool [beard.BEARD_MAX]int, c int64) []int64 {
+	cards := make([]int64, 0)
+	cnt := 1
+	for {
+		node := searchChowCards(pool, c)
+		if node != nil {
+			n := len(node.Children)
+			if n == 0 {
+				break
+			}
+			pos := rand.Intn(n)
+			cards = append(cards, node.Children[pos].Cards...)
+			if pool[c] == 0 {
+				break
+			}
+			pool[cards[len(cards)-3]]--
+			pool[cards[len(cards)-2]]--
+			if cnt != 1 {
+				pool[cards[len(cards)-1]]--
+			}
+			if pool[c] == 0 {
+				break
+			}
+			cnt++
+			pool[c]--
+		}
+	}
+	return cards
 }
 
 func searchChowCards(pool [beard.BEARD_MAX]int, c int64) *Node {
