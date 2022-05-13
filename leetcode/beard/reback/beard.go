@@ -191,9 +191,9 @@ func getShunHuXiSmall(pool []int) (int, *HuHandResult) {
 		if find {
 			find = false
 			finded := false
-			if pos == 6 {
+			if pos == 7 {
 				// 异常处理
-				log.Fatalln("异常！！！")
+				log.Panic("异常！！！")
 			}
 
 			for i := curCard; i < BEARD_BIG_1; i++ {
