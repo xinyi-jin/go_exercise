@@ -29,6 +29,7 @@ func main() {
 	t := new(TreeNode)
 
 	// 本意是想直接赋值二叉树数组数据，不确定想法具体实现，暂未实现成功
+	// 此处所指数组转化二叉树结构，在108题中已具体实现。详见alg108 sortedArrayToBST代码
 	t.init(arr)
 
 	fmt.Println("TreeNode", t)
