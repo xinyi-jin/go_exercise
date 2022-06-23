@@ -32,7 +32,65 @@ s 由小写英文字母组成
 1 <= words[i].length <= 30
 words[i] 由小写英文字母组成 */
 
-// 思路：滑动窗口依次匹配
+// 思路：滑动窗口 + 哈希
 func findSubstring(s string, words []string) []int {
+	res := []int{}
+	l, n := len(words[0]), len(words)
 
+	for i := 0; i <= len(s)-n*l; i++ {
+		hash := make(map[string]int)
+		for _, v := range words {
+			hash[v]++
+		}
+
+		for j := 0; j < n; j++ {
+			pos := i + l*j
+			curWords := s[pos : pos+l]
+			if _, exist := hash[curWords]; exist {
+				hash[curWords]--
+				if hash[curWords] == 0 {
+					delete(hash, curWords)
+				}
+			}
+		}
+		if len(hash) == 0 {
+			res = append(res, i)
+		}
+	}
+	return res
+}
+
+// 官方题解：滑动窗口
+func findSubstringEx(s string, words []string) (ans []int) {
+	ls, m, n := len(s), len(words), len(words[0])
+	for i := 0; i < n && i+m*n <= ls; i++ {
+		differ := map[string]int{}
+		for j := 0; j < m; j++ {
+			differ[s[i+j*n:i+(j+1)*n]]++
+		}
+		for _, word := range words {
+			differ[word]--
+			if differ[word] == 0 {
+				delete(differ, word)
+			}
+		}
+		for start := i; start < ls-m*n+1; start += n {
+			if start != i {
+				word := s[start+(m-1)*n : start+m*n]
+				differ[word]++
+				if differ[word] == 0 {
+					delete(differ, word)
+				}
+				word = s[start-n : start]
+				differ[word]--
+				if differ[word] == 0 {
+					delete(differ, word)
+				}
+			}
+			if len(differ) == 0 {
+				ans = append(ans, start)
+			}
+		}
+	}
+	return
 }
