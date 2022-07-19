@@ -43,3 +43,23 @@ func TestUint(t *testing.T) {
 	fmt.Println("add after", num)
 	fmt.Println("-1/9=", -1/9)
 }
+
+// 100
+func TestCode(t *testing.T) {
+	m := [...]int{
+		'a': 1,
+		'b': 2,
+		'c': 3,
+	}
+	m['a'] = 3
+	fmt.Println(len(m))
+
+	// 我们知晓 c 的 ASCII 码是 99，这道题相当于这样
+	/* m := [...]int{
+		97: 1,
+		98: 2,
+		99: 3,
+	}
+	m[97] = 3
+	fmt.Println(len(m)) */
+}
