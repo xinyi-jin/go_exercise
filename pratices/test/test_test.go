@@ -8,6 +8,16 @@ import (
 func TestForRange(t *testing.T) {
 	fmt.Println(returnValues())
 	fmt.Println(namedReturnValues())
+	arr := []int{1, 2, 3}
+	for i, v := range arr {
+		v += 10
+		arr[i] += 10
+	}
+	fmt.Printf("for range %v\n", arr)
+	for i := 0; i < len(arr); i++ {
+		arr[i] += 100
+	}
+	fmt.Printf("for %v\n", arr)
 }
 
 /* 将result赋值给返回值（可以理解成Go自动创建了一个返回值retValue，相当于执行retValue = result）
@@ -62,4 +72,25 @@ func TestCode(t *testing.T) {
 	}
 	m[97] = 3
 	fmt.Println(len(m)) */
+}
+
+func TestSlice(t *testing.T) {
+	var a []int
+	fmt.Printf("a == nil %v\n", a == nil)
+	fmt.Printf("[]int{} == nil %v\n", []int{} == nil)
+}
+func TestTrimSpace(t *testing.T) {
+	arr := []byte("hello world")
+	res := TrimSpace(arr)
+	fmt.Println("arr", string(arr))
+	fmt.Println("res", string(res))
+}
+func TrimSpace(s []byte) []byte {
+	b := []byte{}
+	for _, x := range s {
+		if x != ' ' {
+			b = append(b, x)
+		}
+	}
+	return b
 }
