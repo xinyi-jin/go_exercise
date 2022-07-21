@@ -38,3 +38,25 @@ func max(a, b int) int {
 	}
 	return b
 }
+
+// BFS
+func maxDepthEx(root *TreeNode) (ans int) {
+	if root == nil {
+		return
+	}
+	queue := []*TreeNode{root}
+	for len(queue) > 0 {
+		q := queue
+		queue = nil
+		for _, node := range q {
+			if node.Left != nil {
+				queue = append(queue, node.Left)
+			}
+			if node.Right != nil {
+				queue = append(queue, node.Right)
+			}
+		}
+		ans++
+	}
+	return
+}
