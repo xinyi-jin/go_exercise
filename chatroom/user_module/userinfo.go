@@ -18,13 +18,14 @@ func (u *UserInfo) SetUserName(username string) {
 }
 
 func NewUserInfo() *UserInfo {
-	return &UserInfo{}
+	return &UserInfo{
+		username: GenUserName(),
+	}
 }
 
 func GenUserName() string {
 	rand.Seed(time.Now().UnixNano())
 	return userNameArr[rand.Intn(len(userNameArr))]
-
 }
 
 var userNameArr = []string{
