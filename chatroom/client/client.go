@@ -2,30 +2,25 @@ package main
 
 import (
 	"fmt"
-	usermodule "go_exercise/chatroom/user_module"
+	"go_exercise/chatroom/log"
 	"net"
 	"os"
 )
 
-func main() {
+var logger *log.Logger
+
+func init() {
+	logger = log.NewLogger("client_log", log.DEBUG)
+}
+
+func start() {
 	conn, err := net.Dial("tcp", "127.0.0.1:80")
 	if err != nil {
-		fmt.Println("net.Dial err:", err)
+		logger.Errorf("net.Dial err:", err)
 		return
 	}
 	defer conn.Close()
-	fmt.Println("connecting sucess.")
-
-	user := usermodule.NewUserInfo()
-	_, _ = conn.Write([]byte(user.GetUserName()))
-
-	/* buf := make([]byte, 4096)
-	n, err := conn.Read(buf)
-	if err != nil {
-		fmt.Println("conn.Read err:", err)
-		return
-	}
-	fmt.Println(string(buf[:n])) */
+	logger.Infoln("connecting sucess.")
 
 	// 客户端发送消息到服务器
 	go func() {
@@ -34,7 +29,7 @@ func main() {
 			// 这里使用Stdin标准输入，因为scanf无法识别空格
 			n, err := os.Stdin.Read(buffer)
 			if err != nil {
-				fmt.Println("os.Stdin.Read err:", err)
+				logger.Errorf("os.Stdin.Read err:", err)
 				continue
 			}
 			_, _ = conn.Write(buffer[:n])
@@ -46,15 +41,19 @@ func main() {
 			buffer := make([]byte, 4096)
 			n, err := conn.Read(buffer)
 			if n == 0 {
-				fmt.Println("connection is shuted.")
+				logger.Infoln("connection is shuted.")
 				return
 			}
 			if err != nil {
-				fmt.Println("conn.Read err:", err)
+				logger.Infoln("conn.Read err:", err)
 				return
 			}
 			fmt.Print(string(buffer[:n]))
 		}
 	}()
 	select {}
+}
+
+func main() {
+	start()
 }
