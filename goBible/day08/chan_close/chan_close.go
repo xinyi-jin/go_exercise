@@ -3,8 +3,7 @@ package main
 import "fmt"
 
 func main() {
-	var ch chan int
-	ch = make(chan int, 10)
+	ch := make(chan int, 10)
 	for i := 0; i < 10; i++ {
 		ch <- i
 	}
@@ -13,7 +12,7 @@ func main() {
 	for {
 		var rb int
 		rb, ok := <-ch
-		if ok == false {
+		if !ok {
 			fmt.Println("channel is close")
 			return
 		}

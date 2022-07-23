@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"goProject/day07/example01/balance"
+	"go_exercise/goBible/day07/example01/balance"
 	"hash/crc32"
 	"math/rand"
 )

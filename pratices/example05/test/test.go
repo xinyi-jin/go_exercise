@@ -1,6 +1,6 @@
 package main
 
-import "GO_WORK/pratices/example05/db"
+import "go_exercise/pratices/example05/db"
 
 func main() {
 

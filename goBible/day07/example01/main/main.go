@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"goProject/day07/example01/balance"
+	"go_exercise/goBible/day07/example01/balance"
 	"math/rand"
 	"os"
 	"time"

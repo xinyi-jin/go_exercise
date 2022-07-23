@@ -7,7 +7,7 @@ import (
 
 type GameArray struct {
 	arr common.IGameFrame
-	g   *logic.GameLogic
+	g   *logic.GameArr
 }
 
 func (arr *GameArray) Print() {

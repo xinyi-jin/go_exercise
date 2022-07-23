@@ -35,10 +35,10 @@ func (b *Book) Borrow(n int) error {
 	}
 
 	b.Total -= n
-	return
+	return nil
 }
 
 func (b *Book) Back(n int) error {
 	b.Total += n
-	return
+	return nil
 }

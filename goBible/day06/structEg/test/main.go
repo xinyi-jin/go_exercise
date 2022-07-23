@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"goProject/day06/structEg/moudle"
+	"go_exercise/goBible/day06/structEg/moudle"
 )
 
 func main() {

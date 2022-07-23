@@ -17,5 +17,4 @@ func TestLog(t *testing.T) {
 	} else {
 		fmt.Printf("readBytes:%s\n", readBytes)
 	}
-
 }

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func main() {
+func wgFunc() {
 	sayHello := func(wg *sync.WaitGroup, id int) {
 		defer wg.Done()
 		fmt.Printf("%v goroutine start ...\n", id)

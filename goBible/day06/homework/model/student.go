@@ -35,16 +35,16 @@ func (s *Student) AddBook(b *BorrowItem) {
 func (s *Student) DelBook(b *BorrowItem) error {
 	for i := 0; i < len(s.books); i++ {
 		if s.books[i].book.Name == b.book.Name {
-			if s.books[i].num == b.num {
+			s.books[i].num -= b.num
+			if s.books[i].num == 0 {
 				s.books = append(s.books[0:i], s.books[i+1:]...)
-				return
 			}
-			s.books[i].book.Name -= b.num
-			return
+			return nil
 		}
 	}
+	return ErrBookNotFount
 }
 
-func (s *Student) BookList() *BorrowItem {
+func (s *Student) BookList() []*BorrowItem {
 	return s.books
 }

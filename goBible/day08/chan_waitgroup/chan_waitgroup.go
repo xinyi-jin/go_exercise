@@ -24,8 +24,7 @@ func write(ch chan<- int, wg *sync.WaitGroup) {
 
 func main() {
 	var wg sync.WaitGroup
-	var ch chan int
-	ch = make(chan int, 10)
+	ch := make(chan int, 10)
 	wg.Add(2)
 
 	go write(ch, &wg)
@@ -35,4 +34,6 @@ func main() {
 	fmt.Println("wait start")
 	wg.Wait()
 	fmt.Println("wait close")
+
+	wgFunc()
 }

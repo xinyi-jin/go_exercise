@@ -6,7 +6,7 @@ type Student struct {
 	Name string
 }
 
-func (s *Student) getName() string {
+func (s *Student) GetName() string {
 	return s.Name
 }
 

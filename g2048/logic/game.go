@@ -4,14 +4,6 @@ import "fmt"
 
 type GameArr [4][4]int
 
-// type GameLogic struct {
-// 	Arr gameArr
-// }
-
-// func (g *gameLogic) Right90() [][]int {
-// 	arrs := g.Arr
-// }
-
 var row int = 4
 
 func (g *GameArr) Right90() {

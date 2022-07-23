@@ -36,9 +36,7 @@ func (s *Student) GetHomeWork() *HomeWork {
 	ps:struct中的fields首字母大写，不然无法访问
 */
 func main() {
-
-	s1 := &Student{1, "zhuhe", 22, "ZhengZhouHeNan"}
-
+	s1 := &Student{1, "zhuhe", 22, "ZhengZhouHeNan", &HomeWork{}}
 	//序列化
 	var buffer bytes.Buffer
 	encoder := gob.NewEncoder(&buffer) //创建编码器

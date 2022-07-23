@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	pop "go_work/pratices/golang/example2.6/popcount"
+	pop "go_exercise/pratices/golang/example2.6/popcount"
 )
 
 func main() {
