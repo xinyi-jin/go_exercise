@@ -26,3 +26,17 @@ func TestPKGReflect(t *testing.T) {
 	var f1, f2, f3 float64 = 1.8, 1.3, 1.5
 	fmt.Printf("f1:%v, f2:%v, f3:%v \n", int(f1), int(f2), int(f3))
 }
+
+// 自定义测试
+func TestCustom(t *testing.T) {
+	// 测试switch 分支匹配后，还会不会继续匹配
+	var cd = 20
+	switch {
+	case cd < 30:
+		fmt.Println("cd<30")
+	case cd < 60:
+		fmt.Println("cd<60")
+	default:
+		fmt.Println("cd<???")
+	}
+}
