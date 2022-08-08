@@ -21,4 +21,8 @@ func TestPKGReflect(t *testing.T) {
 	fmt.Printf("type %v \nvalue %v \n", nt, nv)
 	res := roll.(*Reflect)
 	fmt.Printf("res %v \n", res)
+
+	// float64'/'运算后转int,默认舍弃小数位（向下取整）
+	var f1, f2, f3 float64 = 1.8, 1.3, 1.5
+	fmt.Printf("f1:%v, f2:%v, f3:%v \n", int(f1), int(f2), int(f3))
 }
