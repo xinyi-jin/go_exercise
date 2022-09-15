@@ -1,0 +1,790 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/orange_cat.png">
+  <link rel="icon" href="/img/orange_cat.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="maomao">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="需要学习的地方：老系统 网关服务与多个服务器之间的调度 gate center login game 中心服务 拥有网关服务 登陆服务 游戏服务 连接 可以暂时理解为 中心化部署的分布式服务 可动态添加网关服务 以及各个网关主机服务所拥有的 登陆和游戏服务器 gate 连接 中心服务db 注册rpccenter 中心服务 启动rpc服务 http服务 开启其他服务注册监听login 初始化nats">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自学习内容">
+<meta property="og:url" content="http://example.com/2021/10/12/%E8%87%AA%E5%AD%A6%E4%B9%A0%E5%86%85%E5%AE%B9/index.html">
+<meta property="og:site_name" content="maomao&#39;s blog">
+<meta property="og:description" content="需要学习的地方：老系统 网关服务与多个服务器之间的调度 gate center login game 中心服务 拥有网关服务 登陆服务 游戏服务 连接 可以暂时理解为 中心化部署的分布式服务 可动态添加网关服务 以及各个网关主机服务所拥有的 登陆和游戏服务器 gate 连接 中心服务db 注册rpccenter 中心服务 启动rpc服务 http服务 开启其他服务注册监听login 初始化nats">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-10-12T04:00:00.000Z">
+<meta property="article:modified_time" content="2022-09-13T07:44:54.000Z">
+<meta property="article:author" content="maomao">
+<meta property="article:tag" content="Go">
+<meta property="article:tag" content="数据结构">
+<meta property="article:tag" content="设计模式">
+<meta property="article:tag" content="框架">
+<meta property="article:tag" content="更新策略">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>自学习内容 - maomao&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.2","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 100vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>maomao&#39;s notebook</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                友链
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/wallhaven.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="自学习内容"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-author" aria-hidden="true"></i>
+        maomao
+      </span>
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-10-12 12:00" pubdate>
+          2021-10-12 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          43 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+        <div class="scroll-down-bar">
+          <i class="iconfont icon-arrowdown"></i>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">自学习内容</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>需要学习的地方：<br>老系统 网关服务与多个服务器之间的调度 gate center login game</p>
+<p>中心服务 拥有网关服务 登陆服务 游戏服务 连接 可以暂时理解为 中心化部署的分布式服务 可动态添加网关服务 以及各个网关主机服务所拥有的 登陆和游戏服务器</p>
+<p>gate 连接 中心服务<br>db 注册rpc<br>center 中心服务 启动rpc服务 http服务 开启其他服务注册监听<br>login 初始化nats 注册到center </p>
+<h1 id="2021-10-12"><a href="#2021-10-12" class="headerlink" title="2021.10.12"></a>2021.10.12</h1><p>开始首局游戏的时候,预留客户端加载资源时间 6s</p>
+<p>引用外部包的时候时候可以更改别人包中代码，只要本地一直有修改过的版本即可，否则拉取的是外部包最新代码，没有自己修改过的版本内容。</p>
+<p>nats相关文档</p>
+<p>mysql 57与8.0版本差异<br>速度 默认字符集格式</p>
+<p>什么算作代码整洁，代码整洁与性能优先考虑点 可阅读代码整洁之道 寻求答案</p>
+<p>为什么系统中同时存在nsq和nats的使用 (nats不支持持久化)</p>
+<p>有时间可以阅读的源码库：<br>cache2go  临时内存缓冲使用<br>gob    rpc数据传输封装</p>
+<p>Go源码 尽快找时间阅读</p>
+<p>archive<br>bufio<br>bulitin<br>bytes<br>cmd<br>compress<br>container<br>context<br>crypto<br>database<br>debug<br>encoding<br>errors<br>expvar<br>flag<br>fmt<br>go<br>hash<br>html<br>image<br>index<br>internal<br>io<br>log<br>math<br>mime<br>net<br>os<br>path<br>plugin<br>reflect<br>regexp<br>runtime<br>sort<br>strconv<br>strings<br>sync<br>syscall<br>testdata<br>testing<br>text<br>time<br>unicode<br>unsafe<br>vendor</p>
+<h1 id="2021-11-23"><a href="#2021-11-23" class="headerlink" title="2021.11.23"></a>2021.11.23</h1><p>数据结构：</p>
+<ul>
+<li>数组  <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Array_data_structure">https://en.wikipedia.org/wiki/Array_data_structure</a></li>
+<li>树 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Tree_%28data_structure%29">https://en.wikipedia.org/wiki/Tree_%28data_structure%29</a></li>
+<li>栈 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Stack_%28abstract_data_type%29">https://en.wikipedia.org/wiki/Stack_%28abstract_data_type%29</a></li>
+<li>队列 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29">https://en.wikipedia.org/wiki/Queue_%28abstract_data_type%29</a></li>
+<li>图 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Graph_%28abstract_data_type%29">https://en.wikipedia.org/wiki/Graph_%28abstract_data_type%29</a></li>
+<li>哈希表 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Hash_table">https://en.wikipedia.org/wiki/Hash_table</a></li>
+<li>链表 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Linked_list">https://en.wikipedia.org/wiki/Linked_list</a></li>
+<li>堆 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Heap_%28data_structure%29">https://en.wikipedia.org/wiki/Heap_%28data_structure%29</a></li>
+</ul>
+<p>算法：</p>
+<ol>
+<li></li>
+</ol>
+<p>面试题相关问题</p>
+<p>1、golang 中 make 和 new 的区别？（基本必问）</p>
+<p>​    make 用于slice map channel 类型的创建以及初始化，返回的是对应类型</p>
+<p>​    new 用于分配内存空间，返回对应类型的内存指针地址</p>
+<p>2、数组和切片的区别 （基本必问）</p>
+<p>​    数组是固定长度的，值类型</p>
+<p>​    切片是可变长度的，引用类型</p>
+<p>3、for range 的时候它的地址会发生变化么？</p>
+<p>​    会，for range 的时候操作的是拷贝的数据</p>
+<p>​    for range 对map类型遍历时候，改变map中键值的话，会影响到输出结果，可能输出改变后的值，也可能不输出或少输出</p>
+<p>4、go defer，多个 defer 的顺序，defer 在什么时机会修改返回值？</p>
+<p>​    a.多个defer会倒叙返回，相当于压栈 弹栈操作；</p>
+<h3 id="坑1：defer在匿名返回值和命名返回值函数中的不同表现"><a href="#坑1：defer在匿名返回值和命名返回值函数中的不同表现" class="headerlink" title="坑1：defer在匿名返回值和命名返回值函数中的不同表现"></a>坑1：defer在匿名返回值和命名返回值函数中的不同表现</h3><p>要搞清这个问题首先需要了解defer的执行逻辑，文档中说defer语句在方法返回“时”触发，也就是说return和defer是“同时”执行的。以匿名返回值方法举例，过程如下。</p>
+<ul>
+<li>将result赋值给返回值（可以理解成Go自动创建了一个返回值retValue，相当于执行retValue = result）</li>
+<li>然后检查是否有defer，如果有则执行</li>
+<li>返回刚才创建的返回值（retValue）</li>
+</ul>
+<p>在这种情况下，defer中的修改是对result执行的，而不是retValue，所以defer返回的依然是retValue。在命名返回值方法中，由于返回值在方法定义时已经被定义，所以没有创建retValue的过程，result就是retValue，defer对于result的修改也会被直接返回。</p>
+<h3 id="坑2：在for循环中使用defer可能导致的性能问题"><a href="#坑2：在for循环中使用defer可能导致的性能问题" class="headerlink" title="坑2：在for循环中使用defer可能导致的性能问题"></a>坑2：在for循环中使用defer可能导致的性能问题</h3><p>defer在紧邻创建资源的语句后生命力，看上去逻辑没有什么问题。但是和直接调用相比，defer的执行存在着额外的开销，例如defer会对其后需要的参数进行内存拷贝，还需要对defer结构进行压栈出栈操作。所以在循环中定义defer可能导致大量的资源开销，在本例中，可以将f.Close()语句前的defer去掉，来减少大量defer导致的额外资源消耗。</p>
+<h3 id="坑3：判断执行没有err之后，再defer释放资源"><a href="#坑3：判断执行没有err之后，再defer释放资源" class="headerlink" title="坑3：判断执行没有err之后，再defer释放资源"></a>坑3：判断执行没有err之后，再defer释放资源</h3><p>一些获取资源的操作可能会返回err参数，我们可以选择忽略返回的err参数，但是如果要使用defer进行延迟释放的的话，需要在使用defer之前先判断是否存在err，如果资源没有获取成功，即没有必要也不应该再对资源执行释放操作。如果不判断获取资源是否成功就执行释放操作的话，还有可能导致释放方法执行错误。</p>
+<h3 id="坑4：调用os-Exit时defer不会被执行"><a href="#坑4：调用os-Exit时defer不会被执行" class="headerlink" title="坑4：调用os.Exit时defer不会被执行"></a>坑4：调用os.Exit时defer不会被执行</h3><p>当发生panic时，所在goroutine的所有defer会被执行，但是当调用os.Exit()方法退出程序时，defer并不会被执行。</p>
+<p>5、 uint 类型溢出</p>
+<p>​    数值类型溢出的时候，会重置为0</p>
+<p>6、介绍 rune 类型</p>
+<p>​    rune 相当于int32，特殊的字节类型  可以表示中文字符</p>
+<p>​    uint8 表示一般字符</p>
+<h1 id="2021-11-23-1"><a href="#2021-11-23-1" class="headerlink" title="2021.11.23"></a>2021.11.23</h1><p>设计模式：</p>
+<p>开闭原则：对拓展开放，对修改关闭。</p>
+<p>里氏换元原则：父类可调用的方法，子类也可调用。继承</p>
+<p>OOP 四大特性：封装、继承、多态、抽象</p>
+<p>创建型模式：创建型模式关注点是如何创建对象，其核心思想是要把对象的创建和使用相分离，这样使得两者能相对独立地变换。</p>
+<ol>
+<li><p>工厂模式：对象的创建和使用分离。</p>
+</li>
+<li><p>抽象工厂模式：通过传递参数获取实体类的对象。意图提供一个创建一系列相关或相互依赖对象的接口，而无需指定它们具体的类。</p>
+</li>
+<li><p>单例模式：实例只创建一次，常存在，可直接调用</p>
+</li>
+<li><p>生成器模式（建造者模式）：多个简单的对象构建成一个复杂的对象。</p>
+</li>
+<li><p>原型模式：用于创建重复的对象，同时又能保证性能</p>
+</li>
+</ol>
+<p>行为型模式：行为型模式主要涉及算法和对象间的职责分配。通过使用对象组合，行为型模式可以描述一组对象应该如何协作来完成一个整体任务。</p>
+<ol>
+<li>策略模式：<em>定义一系列的算法，把它们一个个封装起来，并且使它们可相互替换。本模式使得算法可独立于使用它的客户而变化。</em></li>
+<li>观察者模式（Observer）又称发布-订阅模式（Publish-Subscribe：Pub/Sub）。它是一种通知机制，让发送通知的一方（被观察方）和接收通知的一方（观察者）能彼此分离，互不影响。</li>
+<li>状态模式：对象不同状态之间的切换。</li>
+</ol>
+<h1 id="2022-03-10"><a href="#2022-03-10" class="headerlink" title="2022.03.10"></a>2022.03.10</h1><p>数据结构：</p>
+<ol>
+<li>数组：</li>
+</ol>
+<p>​        查找时间复杂度 O(1)</p>
+<p>​        修改时间复杂度O(n)</p>
+<ol start="2">
+<li>链表：</li>
+</ol>
+<p>​        查找时间复杂度 O(n)</p>
+<p>​        修改时间复杂度O(1)</p>
+<h1 id="2022-06-07"><a href="#2022-06-07" class="headerlink" title="2022.06.07"></a>2022.06.07</h1><p>找时间整一个批量更新文件的脚本 便于更新测试服和正式服</p>
+<p>温习一下容器相关内容，虽然本地不能部署容器 但是有时间还是可以玩玩的。</p>
+<h1 id="2022-06-10"><a href="#2022-06-10" class="headerlink" title="2022.06.10"></a>2022.06.10</h1><p>linux备份策略：</p>
+<ol>
+<li>完全备份；<ul>
+<li>每次都备份全部内容；</li>
+</ul>
+</li>
+<li>累计增量备份；<ul>
+<li>每次只备份相对比前一次备份增加的内容；</li>
+</ul>
+</li>
+<li>差异增量备份；<ul>
+<li>每次只备份相对比第一次备份增加的内容；</li>
+</ul>
+</li>
+</ol>
+<h1 id="2022-07-20"><a href="#2022-07-20" class="headerlink" title="2022.07.20"></a>2022.07.20</h1><p>go语言高级编程：书籍阅读</p>
+<p>第一章：</p>
+<p>数组字符串和切片：</p>
+<ol>
+<li>数组：</li>
+</ol>
+<p>数组的长度由下标值决定。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> a [<span class="hljs-number">3</span>]<span class="hljs-type">int</span>                    <span class="hljs-comment">// 定义长度为3的int型数组, 元素全部为0</span><br><span class="hljs-keyword">var</span> b = [...]<span class="hljs-type">int</span>&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>&#125;       <span class="hljs-comment">// 定义长度为3的int型数组, 元素为 1, 2, 3</span><br><span class="hljs-keyword">var</span> c = [...]<span class="hljs-type">int</span>&#123;<span class="hljs-number">2</span>: <span class="hljs-number">3</span>, <span class="hljs-number">1</span>: <span class="hljs-number">2</span>&#125;    <span class="hljs-comment">// 定义长度为3的int型数组, 元素为 0, 2, 3</span><br><span class="hljs-keyword">var</span> d = [...]<span class="hljs-type">int</span>&#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">4</span>: <span class="hljs-number">5</span>, <span class="hljs-number">6</span>&#125; <span class="hljs-comment">// 定义长度为6的int型数组, 元素为 1, 2, 0, 0, 5, 6</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">TestCode</span><span class="hljs-params">(t *testing.T)</span></span> &#123;<br>	m := [...]<span class="hljs-type">int</span>&#123;<br>		<span class="hljs-string">&#x27;a&#x27;</span>: <span class="hljs-number">1</span>,<br>		<span class="hljs-string">&#x27;b&#x27;</span>: <span class="hljs-number">2</span>,<br>		<span class="hljs-string">&#x27;c&#x27;</span>: <span class="hljs-number">3</span>,<br>	&#125;<br>	m[<span class="hljs-string">&#x27;a&#x27;</span>] = <span class="hljs-number">3</span><br>	fmt.Println(<span class="hljs-built_in">len</span>(m))<br><br>	<span class="hljs-comment">// 我们知晓 c 的 ASCII 码是 99，这道题相当于这样</span><br>	<span class="hljs-comment">/* m := [...]int&#123;</span><br><span class="hljs-comment">		97: 1,</span><br><span class="hljs-comment">		98: 2,</span><br><span class="hljs-comment">		99: 3,</span><br><span class="hljs-comment">	&#125;</span><br><span class="hljs-comment">	m[97] = 3</span><br><span class="hljs-comment">	fmt.Println(len(m)) */</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>切片：</li>
+</ol>
+<p>使用append 时候尽量避免扩容</p>
+<p>由于<code>append</code>函数返回新的切片，也就是它支持链式操作。我们可以将多个<code>append</code>操作组合起来，实现在切片中间插入元素：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> a []<span class="hljs-type">int</span><br>a = <span class="hljs-built_in">append</span>(a[:i], <span class="hljs-built_in">append</span>([]<span class="hljs-type">int</span>&#123;x&#125;, a[i:]...)...)     <span class="hljs-comment">// 在第i个位置插入x</span><br>a = <span class="hljs-built_in">append</span>(a[:i], <span class="hljs-built_in">append</span>([]<span class="hljs-type">int</span>&#123;<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>&#125;, a[i:]...)...) <span class="hljs-comment">// 在第i个位置插入切片</span><br></code></pre></td></tr></table></figure>
+
+<p>对切面元素进行操作的时候可以使用<code>copy</code>和<code>append</code>组合</p>
+<p>可以用<code>copy</code>和<code>append</code>组合可以避免创建中间的临时切片，同样是完成添加元素的操作</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go">a = <span class="hljs-built_in">append</span>(a, <span class="hljs-number">0</span>)     <span class="hljs-comment">// 切片扩展1个空间</span><br><span class="hljs-built_in">copy</span>(a[i+<span class="hljs-number">1</span>:], a[i:]) <span class="hljs-comment">// a[i:]向后移动1个位置</span><br>a[i] = x             <span class="hljs-comment">// 设置新添加的元素</span><br></code></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>避免切片内存泄漏</li>
+</ol>
+<p>如前面所说，切片操作并不会复制底层的数据。底层的数组会被保存在内存中，直到它不再被引用。但是有时候可能会因为一个小的内存引用而导致底层整个数组处于被使用的状态，这会延迟自动内存回收器对底层数组的回收。</p>
+<p>例如，<code>FindPhoneNumber</code>函数加载整个文件到内存，然后搜索第一个出现的电话号码，最后结果以切片方式返回。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">FindPhoneNumber</span><span class="hljs-params">(filename <span class="hljs-type">string</span>)</span></span> []<span class="hljs-type">byte</span> &#123;<br>    b, _ := ioutil.ReadFile(filename)<br>    <span class="hljs-keyword">return</span> regexp.MustCompile(<span class="hljs-string">&quot;[0-9]+&quot;</span>).Find(b)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码返回的<code>[]byte</code>指向保存整个文件的数组。因为切片引用了整个原始数组，导致自动垃圾回收器不能及时释放底层数组的空间。一个小的需求可能导致需要长时间保存整个文件数据。这虽然这并不是传统意义上的内存泄漏，但是可能会拖慢系统的整体性能。</p>
+<p>要修复这个问题，可以将感兴趣的数据复制到一个新的切片中（数据的传值是Go语言编程的一个哲学，虽然传值有一定的代价，但是换取的好处是切断了对原始数据的依赖）：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-function"><span class="hljs-keyword">func</span> <span class="hljs-title">FindPhoneNumber</span><span class="hljs-params">(filename <span class="hljs-type">string</span>)</span></span> []<span class="hljs-type">byte</span> &#123;<br>    b, _ := ioutil.ReadFile(filename)<br>    b = regexp.MustCompile(<span class="hljs-string">&quot;[0-9]+&quot;</span>).Find(b)<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">append</span>([]<span class="hljs-type">byte</span>&#123;&#125;, b...)<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>类似的问题，在删除切片元素时可能会遇到。假设切片里存放的是指针对象，那么下面删除末尾的元素后，被删除的元素依然被切片底层数组引用，从而导致不能及时被自动垃圾回收器回收（这要依赖回收器的实现方式）：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> a []*<span class="hljs-type">int</span>&#123; ... &#125;<br>a = a[:<span class="hljs-built_in">len</span>(a)<span class="hljs-number">-1</span>]    <span class="hljs-comment">// 被删除的最后一个元素依然被引用, 可能导致GC操作被阻碍</span><br></code></pre></td></tr></table></figure>
+
+<p>保险的方式是先将需要自动内存回收的元素设置为<code>nil</code>，保证自动回收器可以发现需要回收的对象，然后再进行切片的删除操作：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">var</span> a []*<span class="hljs-type">int</span>&#123; ... &#125;<br>a[<span class="hljs-built_in">len</span>(a)<span class="hljs-number">-1</span>] = <span class="hljs-literal">nil</span> <span class="hljs-comment">// GC回收最后一个元素内存</span><br>a = a[:<span class="hljs-built_in">len</span>(a)<span class="hljs-number">-1</span>]  <span class="hljs-comment">// 从切片删除最后一个元素</span><br></code></pre></td></tr></table></figure>
+
+<p>当然，如果切片存在的周期很短的话，可以不用刻意处理这个问题。因为如果切片本身已经可以被GC回收的话，切片对应的每个元素自然也就是可以被回收的了。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%AD%A6%E4%B9%A0%E3%80%90%E8%B5%84%E6%96%99%E6%95%B4%E7%90%86%E8%AE%B0%E5%BD%95%E3%80%91/" class="category-chain-item">学习【资料整理记录】</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Go/">#Go</a>
+      
+        <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">#数据结构</a>
+      
+        <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#设计模式</a>
+      
+        <a href="/tags/%E6%A1%86%E6%9E%B6/">#框架</a>
+      
+        <a href="/tags/%E6%9B%B4%E6%96%B0%E7%AD%96%E7%95%A5/">#更新策略</a>
+      
+    </div>
+  
+</div>
+
+
+              
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/02/27/JDK%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" title="JDK的安装与环境配置">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">JDK的安装与环境配置</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/04/02/slot/" title="slot">
+                        <span class="hidden-mobile">slot</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.4.17/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"5dXBaxNNpUJQJI4mNGlMtKHy-gzGzoHsz","appKey":"pThoKgDagYLJbYZrnl4ShW9A","path":"window.location.pathname","placeholder":"别忘了留下你的名字:)","avatar":"retro","meta":["nick","mail"],"requiredFields":["nick"],"pageSize":10,"lang":"zh-CN","highlight":true,"recordIP":true,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> <br/> <a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="知识共享许可协议" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" srcset="/img/loading.gif" lazyload /></a><br />本作品采用<a rel="license noopener" target="_blank" href="http://creativecommons.org/licenses/by-sa/4.0/">知识共享署名-相同方式共享 4.0 国际许可协议</a>进行许可。
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
