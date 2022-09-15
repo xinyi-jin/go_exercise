@@ -8,7 +8,7 @@
     <link href="/2022/09/15/2022-09-14-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80/"/>
     <url>/2022/09/15/2022-09-14-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80/</url>
     
-    <content type="html"><![CDATA[<h3 id="数据结构与算法基础"><a href="#数据结构与算法基础" class="headerlink" title="数据结构与算法基础"></a>数据结构与算法基础</h3><ul><li>数组与矩阵</li><li><font color=red>线性表（栈、队列）</font></li><li>广义表</li><li><font color=red>树和二叉树</font></li><li>图</li><li><font color=red>排序与查找</font></li><li><font color=red>算法基础及常见的算法</font></li></ul><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><ul><li>一维数组</li><li>二维数组：按行存储，按列存储</li><li>多维数组</li></ul><h3 id="稀疏矩阵"><a href="#稀疏矩阵" class="headerlink" title="稀疏矩阵"></a>稀疏矩阵</h3><ul><li>选择题，可使用代入法</li></ul><h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3>]]></content>
+    <content type="html"><![CDATA[<h3 id="数据结构与算法基础"><a href="#数据结构与算法基础" class="headerlink" title="数据结构与算法基础"></a>数据结构与算法基础</h3><ul><li>数组与矩阵</li><li><font color=red>线性表（栈、队列）</font></li><li>广义表</li><li><font color=red>树和二叉树</font></li><li>图</li><li><font color=red>排序与查找</font></li><li><font color=red>算法基础及常见的算法</font></li></ul><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><ul><li>一维数组</li><li>二维数组：按行存储，按列存储</li><li>多维数组</li></ul><h3 id="稀疏矩阵"><a href="#稀疏矩阵" class="headerlink" title="稀疏矩阵"></a>稀疏矩阵</h3><ul><li>选择题，可使用代入法</li></ul><p><img src="https://github.com/xinyi-jin/xinyi-jin.github.io/tree/main/img/%E8%BD%AF%E8%80%83/image-20220915115820786.png"></p><p><img src="/img/%E8%BD%AF%E8%80%83/image-20220915115820786.png" alt="image-20220915115820786"></p><h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3>]]></content>
     
     
     <categories>
@@ -451,7 +451,9 @@
     
     <tags>
       
-      <tag>windows</tag>
+      <tag>Windows</tag>
+      
+      <tag>应用软件</tag>
       
     </tags>
     

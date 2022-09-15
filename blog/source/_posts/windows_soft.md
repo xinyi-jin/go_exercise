@@ -2,7 +2,8 @@
 title: windows安装软件
 date: 2020-11-25 12:00:00
 tags:
-- windows
+- Windows
+- 应用软件
 categories:
 - 学习【资料整理记录】
 ---
