@@ -30,13 +30,15 @@ func TestPKGReflect(t *testing.T) {
 // 自定义测试
 func TestCustom(t *testing.T) {
 	// 测试switch 分支匹配后，还会不会继续匹配
-	var cd = 20
+	var cd = 30
 	switch {
 	case cd < 30:
 		fmt.Println("cd<30")
 	case cd < 60:
 		fmt.Println("cd<60")
+		return // 测试switch 分支匹配后，return后，还会不会执行外层逻辑
 	default:
 		fmt.Println("cd<???")
 	}
+	fmt.Println("ending....")
 }
