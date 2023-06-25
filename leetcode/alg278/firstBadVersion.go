@@ -42,3 +42,44 @@ func isBadVersion(version int) bool {
 func firstBadVersion(n int) int {
 	return sort.Search(n, func(version int) bool { return isBadVersion(version) })
 }
+
+func firstBadVersionEx1(n int) int {
+	pre, suf := 1, n
+	for pre <= suf {
+		idx := (suf-pre)/2 + pre
+		if isBadVersion(idx) {
+			suf = idx - 1
+		} else {
+			pre = idx + 1
+		}
+	}
+	return pre
+}
+
+func firstBadVersionEx2(n int) int {
+	pre, suf := 1, n
+	for pre < suf {
+		idx := (suf-pre)/2 + pre
+		if isBadVersion(idx) {
+			suf = idx
+		} else {
+			pre = idx + 1
+		}
+	}
+	return pre
+}
+
+func firstBadVersionEx3(n int) int {
+	res := n
+	pre, suf := 1, n
+	for pre <= suf {
+		idx := (suf-pre)/2 + pre
+		if isBadVersion(idx) {
+			res = idx
+			suf = idx - 1
+		} else {
+			pre = idx + 1
+		}
+	}
+	return res
+}
