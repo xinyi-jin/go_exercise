@@ -1,4 +1,4 @@
-package alg1466
+package alg1446
 
 import "testing"
 
