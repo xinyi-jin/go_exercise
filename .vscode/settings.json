@@ -1,5 +1,8 @@
 {
     "cSpell.words": [
         "gonic"
+    ],
+    "Lua.diagnostics.disable": [
+        "redefined-local"
     ]
 }
