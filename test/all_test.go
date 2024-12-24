@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -12,6 +13,11 @@ type Reflect struct {
 	name    string
 	age     int
 	address string
+}
+type User struct {
+	Name      string `json:"name,omitempty"`
+	Age       int32  `json:"age,omitempty"`
+	IsPayUser bool   `json:"isPayUser,omitempty"`
 }
 
 func TestPKGReflect(t *testing.T) {
@@ -74,5 +80,56 @@ func TestCustom(t *testing.T) {
 		println("birthYear", fmt.Sprintf("%d", birthYear), "sex", sex)
 
 		println(time.Unix(0, 0).Format("2006-01-02 15:04:05"))
+
+		tsNs := time.Now().UnixNano()
+		for i := 0; i < 10000; i++ {
+			print("")
+		}
+		println(time.Now().UnixNano()/1e6 - tsNs/1e6)
+
+		ts, err := strconv.Atoi("1731183243")
+
+		println(time.Unix(int64(ts), 0).Format("2006-01-02 15:04:05"))
+
+		// for {
+		// 	n := int32(rand.Intn(8)+1) * 2
+		// 	println("n", n)
+		// 	if n > 16 {
+		// 		println("breack", n)
+		// 		break
+		// 	}
+		// 	time.Sleep(time.Second)
+		// }
 	}
+
+	// 验证json tag:omitempty不写的情况下默认值等同于go数据类型的默认值，序列化后得到的json串没有该默认值数据
+	user := &User{
+		IsPayUser: 0 > 1,
+	}
+	data, err := json.Marshal(user)
+	if err != nil {
+		fmt.Println("data:", data)
+	}
+	fmt.Println(string(data))
+
+	properties := make(map[string]interface{})
+	properties["isPayUser"] = false
+	data2, err2 := json.Marshal(properties)
+	if err2 != nil {
+		fmt.Println("data:", data)
+	}
+	fmt.Println(string(data2))
+	fmt.Println(properties)
+
+	// 测试ip生成
+	ipNums := []string{"102", "50", "146", "58"}
+	var ipLong int64 = 0
+	for i := 0; i < len(ipNums); i++ {
+		ipNum, err := strconv.Atoi(ipNums[i])
+		if err != nil {
+			break
+		}
+		ipLong = ipLong<<8 + int64(ipNum)
+	}
+	fmt.Println("ipLong:", ipLong)
 }
