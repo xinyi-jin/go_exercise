@@ -4,5 +4,6 @@
     ],
     "Lua.diagnostics.disable": [
         "redefined-local"
-    ]
+    ],
+    "Codegeex.CommitMessageStyle": "Auto"
 }
