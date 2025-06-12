@@ -132,4 +132,15 @@ func TestCustom(t *testing.T) {
 		ipLong = ipLong<<8 + int64(ipNum)
 	}
 	fmt.Println("ipLong:", ipLong)
+
+	fmt.Println("time:", int64(time.Minute)/1e9)
+
+	var BeReportSnId map[int32]int32
+	// BeReportSnId := make(map[int32]int32)
+	if _, exist := BeReportSnId[123]; !exist {
+		BeReportSnId = make(map[int32]int32)
+	}
+	BeReportSnId[123] = 10
+	fmt.Println("time:", BeReportSnId[123])
+
 }
