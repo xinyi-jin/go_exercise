@@ -1,0 +1,58 @@
+package alg3423
+
+import "math"
+
+/* 3423. 循环数组中相邻元素的最大差值
+简单
+相关标签
+premium lock icon
+相关企业
+提示
+给你一个 循环 数组 nums ，请你找出相邻元素之间的 最大 绝对差值。
+
+注意：一个循环数组中，第一个元素和最后一个元素是相邻的。
+
+
+
+示例 1：
+
+输入：nums = [1,2,4]
+
+输出：3
+
+解释：
+
+由于 nums 是循环的，nums[0] 和 nums[2] 是相邻的，它们之间的绝对差值是最大值 |4 - 1| = 3 。
+
+示例 2：
+
+输入：nums = [-5,-10,-5]
+
+输出：5
+
+解释：
+
+相邻元素 nums[0] 和 nums[1] 之间的绝对差值为最大值 |-5 - (-10)| = 5 。
+
+
+
+提示：
+
+2 <= nums.length <= 100
+-100 <= nums[i] <= 100 */
+
+// 直接遍历取值
+func maxAdjacentDistance(nums []int) int {
+	res := 0
+	res = max(res, max(int(math.Abs(float64(nums[0]-nums[len(nums)-1]))), int(float64(nums[len(nums)-1]-nums[0]))))
+	for i := 0; i < len(nums)-1; i++ {
+		res = max(res, max(int(math.Abs(float64(nums[i]-nums[i+1]))), int(float64(nums[i+1]-nums[i]))))
+	}
+	return res
+}
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
