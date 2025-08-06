@@ -143,4 +143,12 @@ func TestCustom(t *testing.T) {
 	BeReportSnId[123] = 10
 	fmt.Println("time:", BeReportSnId[123])
 
+	arr := []int{1, 2, 3, 4, 5, 6}
+	for i := 0; i < len(arr); i++ {
+		fmt.Println("i:", i)
+		if i == 3 {
+			arr = append(arr[:i], arr[i+1:]...)
+			fmt.Println(len(arr))
+		}
+	}
 }
