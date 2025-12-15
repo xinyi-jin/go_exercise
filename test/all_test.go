@@ -71,11 +71,11 @@ func TestCustom(t *testing.T) {
 		println("tmp", tmp)
 		birthYear, err := strconv.Atoi(tmp)
 		if err != nil {
-			fmt.Errorf("Atoi err %v", err)
+			println(fmt.Errorf("Atoi err %v", err))
 		}
 		sex, err := strconv.Atoi(string(idNumber[16]))
 		if err != nil {
-			fmt.Errorf("Atoi err %v", err)
+			println(fmt.Errorf("Atoi err %v", err))
 		}
 		println("birthYear", fmt.Sprintf("%d", birthYear), "sex", sex)
 
