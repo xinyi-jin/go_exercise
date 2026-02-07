@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"testing"
 	"time"
+	"unicode/utf8"
 )
 
 type Reflect struct {
@@ -151,4 +152,7 @@ func TestCustom(t *testing.T) {
 			fmt.Println(len(arr))
 		}
 	}
+
+	fmt.Println(utf8.RuneCountInString("喵喵,123"))
+	fmt.Println(len("喵喵,123"))
 }
