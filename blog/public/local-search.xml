@@ -4,11 +4,924 @@
   
   
   <entry>
+    <title>docker-etcd</title>
+    <link href="/2026/03/10/2026-03-10-docker-etcd/"/>
+    <url>/2026/03/10/2026-03-10-docker-etcd/</url>
+    
+    <content type="html"><![CDATA[<h1 id="2025-12-08"><a href="#2025-12-08" class="headerlink" title="2025.12.08"></a>2025.12.08</h1><p>docker 使用etcd容器</p><ol><li>使用etcd镜像版本 quay.io/coreos/etcd:v3.5.12 docker pull 拉取镜像</li><li>mkdir -p /data/containers/etcd/{data,config} 创建数据和配置目录</li><li>/data/containers/etcd/config/etcd.conf.yml 创建配置文件<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs pgsql"><span class="hljs-type">name</span>: etcd-s1<br>data-dir: /var/etcd<br><span class="hljs-keyword">listen</span>-client-urls: http://<span class="hljs-number">0.0</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span>:<span class="hljs-number">2379</span><br>advertise-client-urls: http://<span class="hljs-number">0.0</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span>:<span class="hljs-number">2379</span><br><span class="hljs-keyword">listen</span>-peer-urls: http://<span class="hljs-number">0.0</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span>:<span class="hljs-number">2380</span><br>initial-advertise-peer-urls: http://<span class="hljs-number">0.0</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span>:<span class="hljs-number">2380</span><br>initial-<span class="hljs-keyword">cluster</span>: etcd-s1=http://<span class="hljs-number">0.0</span><span class="hljs-number">.0</span><span class="hljs-number">.0</span>:<span class="hljs-number">2380</span><br>initial-<span class="hljs-keyword">cluster</span>-token: etcd-<span class="hljs-keyword">cluster</span><br>initial-<span class="hljs-keyword">cluster</span>-state: <span class="hljs-built_in">new</span><br>logger: zap<br><span class="hljs-keyword">log</span>-<span class="hljs-keyword">level</span>: <span class="hljs-keyword">info</span><br><span class="hljs-meta">#log-outputs: stderr</span><br><br>特殊参数说明：<br><br><span class="hljs-type">name</span>： etcd member 名称，可根据实际情况修改<br>data-dir： etcd 数据目录，可根据实际情况修改<br><span class="hljs-keyword">listen</span>-client-urls:  client 流量监听地址，没特殊需求按文档填写即可<br>advertise-client-urls: 该 member 向外部通告的客户端 url 列表，单节点部署时不需要修改，集群部署模式需修改为容器所在节点对外提供服务的 IP<br><span class="hljs-keyword">listen</span>-peer-urls:  peer 流量监听地址，没特殊需求按文档填写即可<br>initial-advertise-peer-urls:  该 member 向同一集群内其他 member 通告的 peer url 列表，单节点部署时不需要修改，集群部署模式需修改为容器所在节点对外提供服务的 IP<br>initial-<span class="hljs-keyword">cluster</span>:  初始化集群节点信息，单节点部署时不需要修改，集群部署模式需要填写集群中所有 member 的信息<br>initial-<span class="hljs-keyword">cluster</span>-token:  初始化集群时使用的 token，随便写<br>initial-<span class="hljs-keyword">cluster</span>-state:  初始化集群状态，可选的值为 <span class="hljs-built_in">new</span>  或者  existing，通常采用 <span class="hljs-built_in">new</span><br></code></pre></td></tr></table></figure></li><li>创建 docker-compose.yml 文件<figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs dts"><span class="hljs-symbol">version:</span> <span class="hljs-string">&#x27;3&#x27;</span><br><span class="hljs-symbol"></span><br><span class="hljs-symbol">services:</span><br><span class="hljs-symbol">  etcd:</span><br><span class="hljs-symbol">    container_name:</span> etcd-s1<br><span class="hljs-symbol">    image:</span> quay.io<span class="hljs-keyword">/coreos/</span>etcd:v3<span class="hljs-number">.5</span><span class="hljs-number">.12</span><br><span class="hljs-symbol">    command:</span> <span class="hljs-keyword">/usr/</span>local<span class="hljs-keyword">/bin/</span>etcd --<span class="hljs-attr">config-file</span><span class="hljs-operator">=</span><span class="hljs-keyword">/var/</span>lib<span class="hljs-keyword">/etcd/</span>conf/etcd.conf.yml<br><span class="hljs-symbol">    volumes:</span><br>      - $<span class="hljs-punctuation">&#123;</span>DOCKER_VOLUME_DIRECTORY:-.<span class="hljs-punctuation">&#125;</span>/data:<span class="hljs-keyword">/var/</span>etcd<br>      - $<span class="hljs-punctuation">&#123;</span>DOCKER_VOLUME_DIRECTORY:-.<span class="hljs-punctuation">&#125;</span><span class="hljs-keyword">/config/</span>etcd.conf.yml:<span class="hljs-keyword">/var/</span>lib<span class="hljs-keyword">/etcd/</span>conf/etcd.conf.yml<br>      - <span class="hljs-string">&quot;/etc/localtime:/etc/localtime:ro&quot;</span><br><span class="hljs-symbol">    ports:</span><br>      - <span class="hljs-number">2379</span>:<span class="hljs-number">2379</span><br>      - <span class="hljs-number">2380</span>:<span class="hljs-number">2380</span><br><span class="hljs-symbol">    restart:</span> always<br><span class="hljs-symbol"></span><br><span class="hljs-symbol">networks:</span><br><span class="hljs-symbol">  default:</span><br><span class="hljs-symbol">    name:</span> etcd-tier<br><span class="hljs-symbol">    driver:</span> bridge<br></code></pre></td></tr></table></figure></li><li>使用docker-compse 读取配置文件运行初始化容器<br>cd /data/containers/etcd<br>docker-compose up -d</li></ol><!-- 行不通 --><p>使用etcdkeeper 操作etcd</p><ol><li>下载etcdkeeper源码<br> <a href="https://codeload.github.com/evildecay/etcdkeeper/zip/refs/heads/master">https://codeload.github.com/evildecay/etcdkeeper/zip/refs/heads/master</a></li><li>编译etcdkeeper启动程序</li><li>运行编译好的程序</li><li>浏览器访问地址</li></ol><!-- 直接使用容器运行etcdkeeper --><ol><li>配置容器镜像源 阿里镜像库<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs awk">  vim <span class="hljs-regexp">/etc/</span>docker/daemon.json<br><br>  &lt;!-- 添加内容 --&gt;<br>  &#123;<br>  <span class="hljs-string">&quot;registry-mirrors&quot;</span>: [<br>  <span class="hljs-string">&quot;https://docker.xuanyuan.me&quot;</span>,<br>  <span class="hljs-string">&quot;https://xxx.mirror.aliyuncs.com&quot;</span><br>],<br>  <span class="hljs-string">&quot;insecure-registries&quot;</span>: [<br>  <span class="hljs-string">&quot;docker.xuanyuan.me&quot;</span><br>],<br>  <span class="hljs-string">&quot;dns&quot;</span>: [<span class="hljs-string">&quot;119.29.29.29&quot;</span>, <span class="hljs-string">&quot;114.114.114.114&quot;</span>]<br>&#125;<br><br>ps:<br>bash &lt;(wget -qO- https:<span class="hljs-regexp">//</span>xuanyuan.cloud/docker.sh)<br>上述命令可一键安装轩辕代理<br><br></code></pre></td></tr></table></figure></li><li>拉取镜像<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">docker pull docker.io<span class="hljs-regexp">/evildecay/</span>etcdkeeper<br></code></pre></td></tr></table></figure></li><li>创建 docker-compose.yml 文件<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs gradle">version: <span class="hljs-string">&#x27;3&#x27;</span><br><br>services:<br>  etcdkeeper:<br>    container_name: etcdkeeper-s1<br>    image: docker.io<span class="hljs-regexp">/evildecay/</span>etcdkeeper:latest<br>    #command: <span class="hljs-regexp">/usr/</span>local<span class="hljs-regexp">/bin/</span>etcd --config-<span class="hljs-keyword">file</span>=<span class="hljs-regexp">/var/</span>lib<span class="hljs-regexp">/etcd/</span>conf/etcd.conf.yml<br>    #volumes:<br>     # - <span class="hljs-regexp">/data/</span>containers<span class="hljs-regexp">/etcd/</span>data:<span class="hljs-regexp">/var/</span>etcd<br>      #- <span class="hljs-regexp">/data/</span>containers<span class="hljs-regexp">/etcd/</span>config<span class="hljs-regexp">/etcd.conf.yml:/</span>var<span class="hljs-regexp">/lib/</span>etcd<span class="hljs-regexp">/conf/</span>etcd.conf.yml<br>      #- <span class="hljs-string">&quot;/etc/localtime:/etc/localtime:ro&quot;</span><br>    ports:<br>      #- <span class="hljs-number">2379</span>:<span class="hljs-number">2379</span><br>      #- <span class="hljs-number">2380</span>:<span class="hljs-number">2380</span><br>      - <span class="hljs-number">8080</span>:<span class="hljs-number">8080</span><br>    restart: <span class="hljs-string">&quot;no&quot;</span><br><br>networks:<br>  <span class="hljs-keyword">default</span>:<br>    driver: bridge<br></code></pre></td></tr></table></figure></li><li>docker-compose up -d 启动容器</li><li>打开网址访问etcdkeeper地址<br><a href="http://127.0.0.1:8080/">http://127.0.0.1:8080</a></li></ol><p>目前etcdkeeper 设置密码时候无法访问 不清楚具体原因</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Docker</tag>
+      
+      <tag>Etcd</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>docker-gitlab私服搭建</title>
+    <link href="/2026/03/10/2026-03-10-gitlab%E7%A7%81%E6%9C%8D%E6%90%AD%E5%BB%BA/"/>
+    <url>/2026/03/10/2026-03-10-gitlab%E7%A7%81%E6%9C%8D%E6%90%AD%E5%BB%BA/</url>
+    
+    <content type="html"><![CDATA[<h1 id="2026-01-05"><a href="#2026-01-05" class="headerlink" title="2026.01.05"></a>2026.01.05</h1><p>gitlab私服搭建<br>部署环境：</p><ul><li>docker</li><li>centos<br>使用环境</li><li>windows11</li></ul><ol><li><p>安装docker，保证docker可用即可；</p></li><li><p>拉取gitlab镜像；</p><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">docker</span> pull swr.cn-north-<span class="hljs-number">4</span>.myhuaweicloud.com/ddn-k8s/docker.io/gitlab/gitlab-ce:<span class="hljs-number">18</span>.<span class="hljs-number">7</span>.<span class="hljs-number">0</span>-ce.<span class="hljs-number">0</span><br><span class="hljs-attribute">docker</span> tag  swr.cn-north-<span class="hljs-number">4</span>.myhuaweicloud.com/ddn-k8s/docker.io/gitlab/gitlab-ce:<span class="hljs-number">18</span>.<span class="hljs-number">7</span>.<span class="hljs-number">0</span>-ce.<span class="hljs-number">0</span>  docker.io/gitlab/gitlab-ce:<span class="hljs-number">18</span>.<span class="hljs-number">7</span>.<span class="hljs-number">0</span>-ce.<span class="hljs-number">0</span><br></code></pre></td></tr></table></figure></li><li><p>创建容器持久化目录卷</p></li></ol><p>mkdir -p data/{log,opt,etc}</p><ol start="4"><li>运行gitlab容器</li></ol><p>docker run -itd <br>-p 9980:80 <br>-p 9922:22 <br>-u root <br>-v $PWD/data/log:/var/log/gitlab <br>-v $PWD/data/opt:/var/opt/gitlab <br>-v $PWD/data/etc:/etc/gitlab <br>–privileged=true <br>–name=gitlab_test <br>gitlab/gitlab-ce</p><ol start="5"><li><p>访问 ip:9980 正常显示登录界面即可</p></li><li><p>查看root初始密码</p></li></ol><p>docker exec -it gitlab_test grep “Password”: /etc/gitlab/initial_root_password</p><ol start="7"><li>修改密码<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs awk">如果root账户密码不正确，则需要重新设置，步骤如下<br><br><span class="hljs-regexp">//</span>首先进入 gitlab_test 容器内<br>docker exec -it gitlab_test <span class="hljs-regexp">/bin/</span>bash<br><span class="hljs-regexp">//</span> 进入控制台（这步需要等待一会）<br>gitlab-rails console -e production<br><span class="hljs-regexp">//</span>查询root用户（即id为<span class="hljs-number">1</span>）<br>user=User.where(id:<span class="hljs-number">1</span>).first<br><span class="hljs-regexp">//</span>设置密码<br>user.password=<span class="hljs-string">&#x27;mimashi1998&#x27;</span><br><span class="hljs-regexp">//</span>保存<br>user.save!<br><span class="hljs-regexp">//</span>退出<br><span class="hljs-keyword">exit</span><br></code></pre></td></tr></table></figure></li></ol><p>上述搭建完成<br>还需注意docker内存，避免因运行内存爆满导致，程序阻塞</p><p>实测运行需要3G内存，首次运行占用内存在2.3G左右，文档提示需要至少4G运行内存</p><p>运行内存和端口映射配置好<br>登录网页端，新建仓库配置<br>git clone ssh://<a href="mailto:&#103;&#x69;&#116;&#x40;&#x31;&#55;&#x32;&#x2e;&#49;&#54;&#x2e;&#51;&#x2e;&#49;&#x39;&#49;">&#103;&#x69;&#116;&#x40;&#x31;&#55;&#x32;&#x2e;&#49;&#54;&#x2e;&#51;&#x2e;&#49;&#x39;&#49;</a>:9922/root/xiaoxinxin-api-master.git</p><p>添加本地host配置的话 可以不用使用ip访问</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Docker</tag>
+      
+      <tag>GitLab</tag>
+      
+      <tag>Centos</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>k8s</title>
+    <link href="/2026/03/10/2026-03-10-k8s/"/>
+    <url>/2026/03/10/2026-03-10-k8s/</url>
+    
+    <content type="html"><![CDATA[<h1 id="2026-02-10"><a href="#2026-02-10" class="headerlink" title="2026.02.10"></a>2026.02.10</h1><p>k8s 单机部署记录：</p><ol><li><p>安装kubernetes<br><code> sudo yum install kubernetes</code></p></li><li><p>安装kubectl<br>`</p> <!-- 官方文档 --><p> // <a href="https://kubernetes.io/zh-cn/docs/home/">https://kubernetes.io/zh-cn/docs/home/</a> </p><ul><li>curl -LO <a href="https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl">https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl</a> // 下载</li><li>sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl // 安装</li><li>kubectl version –client // 测试<br>`</li></ul></li><li><p>安装kind(和kuberctl类似)<br>`</p> <!-- 官方文档 --><p> // <a href="https://kubernetes.io/zh-cn/docs/home/">https://kubernetes.io/zh-cn/docs/home/</a> </p><ul><li><p>下载</p><h1 id="For-AMD64-x86-64"><a href="#For-AMD64-x86-64" class="headerlink" title="For AMD64 / x86_64"></a>For AMD64 / x86_64</h1><p>[ $(uname -m) = x86_64 ] &amp;&amp; curl -Lo ./kind <a href="https://kind.sigs.k8s.io/dl/v0.31.0/kind-linux-amd64">https://kind.sigs.k8s.io/dl/v0.31.0/kind-linux-amd64</a></p><h1 id="For-ARM64"><a href="#For-ARM64" class="headerlink" title="For ARM64"></a>For ARM64</h1><p>[ $(uname -m) = aarch64 ] &amp;&amp; curl -Lo ./kind <a href="https://kind.sigs.k8s.io/dl/v0.31.0/kind-linux-arm64">https://kind.sigs.k8s.io/dl/v0.31.0/kind-linux-arm64</a><br>chmod +x ./kind<br>sudo mv ./kind /usr/local/bin/kind</p></li><li><p>安装<br>sudo install -o root -g root -m 0755 kind /usr/local/bin/kind</p></li><li><p>测试<br>kind<br>`</p></li></ul></li><li><p>minikube 比kind操作更简单方便<br>`</p></li></ol><ul><li>参考官方文档<br>// <a href="https://kubernetes.io/zh-cn/docs/home/">https://kubernetes.io/zh-cn/docs/home/</a> </li></ul><p>curl -LO <a href="https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64">https://github.com/kubernetes/minikube/releases/latest/download/minikube-linux-amd64</a><br>sudo install minikube-linux-amd64 /usr/local/bin/minikube &amp;&amp; rm minikube-linux-amd64</p><p>`</p><ol start="5"><li>操作失败告终 具体原因不明</li></ol><p>最终还是使用kind 启动集群</p><p>docker pull kindest/node:v1.18.2<br>kind create cluster –image=kindest/node:v1.18.2</p><p>✓ Ensuring node image (kindest/node:v1.18.2) 🖼<br>✗ Preparing nodes 📦<br>RROR: failed to create cluster: command “docker run –name kind-control-plane –hostname kind-control-plane –label io.x-k8s.kind.role=control-plane –privileged –security-opt seccomp=unconfined –security-opt apparmor=unconfined –tmpfs /tmp –tmpfs /run –volume /var –volume /lib/modules:/lib/modules:ro -e KIND<br>EXPERIMENTAL_CONTAINERD_SNAPSHOTTER –detach –tty –label io.x-k8s.kind.cluster=kind –net kind –restart=on-failure:1 –init=false –cgroupns=private –publish=127.0.0.1:36039:6443/TCP -e KUBECONFIG=/etc/kubernetes/admin.conf kindest/node:v1.18.2” failed with error: exit status 125<br>ommand Output: unknown flag: –cgroupns<br>ee ‘docker run –help’.</p><p>可以过image </p><p>cgroupns 提示内核版本太低</p><p>需要重启系统 暂不操作测试环境机器 </p><p>``<br>原文地址 ：<a href="https://blog.csdn.net/a1369760658/article/details/136618992">https://blog.csdn.net/a1369760658/article/details/136618992</a><br>#1 更新系统，确保所有安装的包都是最新的<br>$ sudo yum update</p><p>#2安装 elrepo 仓库，该仓库提供了最新的稳定内核<br>$ sudo rpm –import <a href="https://www.elrepo.org/RPM-GPG-KEY-elrepo.org">https://www.elrepo.org/RPM-GPG-KEY-elrepo.org</a><br>$ sudo yum install -y <a href="https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm">https://www.elrepo.org/elrepo-release-7.el7.elrepo.noarch.rpm</a></p><p>#3 安装新的内核（例如，最新的稳定版本是 kernel-ml）<br>$ sudo yum –enablerepo=elrepo-kernel install kernel-ml -y</p><p>#4 更新GRUB引导菜单<br>$ sudo grub2-mkconfig -o /boot/grub2/grub.cfg</p><p>#5 修改默认引导顺序，使新内核成为默认引导<br>$ sudo grub2-set-default 0</p><p>#6 重新启动系统，确认新内核成功安装并生效<br>$ sudo reboot</p><p>``</p><p>参考此文 可以解决系统内核版本过低问题<br><a href="https://blog.csdn.net/zyplanke/article/details/146979876">https://blog.csdn.net/zyplanke/article/details/146979876</a></p><p>更新系统内核后 原先docker无法正常运行</p><p>尝试更新docker 20以上版本 看是否可以解决</p><p>CentOS 安装 Docker 20.10+<br>卸载旧版本：<br><code>bash sudo yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine</code></p><p>设置稳定存储库（阿里云）：<br><code>bash sudo yum install -y yum-utils sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</code></p><p>安装指定版本 (以20.10.24为例)：<br><code>bash sudo yum install -y docker-ce-20.10.24 docker-ce-cli-20.10.24 containerd.io</code></p><p>启动与检查：<br><code>bash sudo systemctl start docker sudo systemctl enable docker docker --version</code></p><p>更新后<br>docker info<br> Cgroup Driver: cgroupfs<br> Cgroup Version: 1</p><p>再次执行 kind create cluster<br>第二步通过了<br><code>[root@i-698afbd7cee176e6ce8a84dd ~]# kind create cluster Creating cluster &quot;kind&quot; ...  ✓ Ensuring node image (kindest/node:v1.35.0) 🖼  ✓ Preparing nodes 📦  ✗ Writing configuration 📜 Deleted nodes: [&quot;kind-control-plane&quot;] ERROR: failed to create cluster: failed to generate kubeadm config content: failed to get kubernetes version from node: failed to get file: command &quot;docker exec --privileged kind-control-plane cat /kind/version&quot; failed with error: exit status 126 Command Output: OCI runtime exec failed: exec failed: unable to start container process: read init-p: connection reset by peer: unknown [root@i-698afbd7cee176e6ce8a84dd ~]#</code></p><p>尝试使用cgroup v2版本 不行<br>尝试使用 centos:centos7镜像 对应docker版本 20.10.7 不行</p><p>问题点确认：centos 系统内核版本和 docker版本不匹配导致</p><ol><li>要么内核版本通过</li><li>要么docker正常</li></ol><p>最终kind create cluster 会卡在一个报错点上</p><p>最终实现方案：<br>使用k3s快速部署</p><p>AI我怀疑你在耍我啊！！！<br>kubernets –&gt; kubectl –&gt; kind –&gt; k3s –&gt; k3d </p><p>尝试见尝试一种方式不行，会提示你更换操作方式</p><p>尝试使用k3d 单机部署 容器花集群</p><p>归功于DeepSeek V3<br>全程把报错日志信息抛给AI 处理得到的结果</p><p>第一步：<br>kubectl create service clusterip nginx –tcp=80:80<br>&lt;<br>🎯 推荐使用方案一<br>为了尽快看到集群能否正常运行，建议使用方案一，因为它保留了负载均衡器，可以让你后续更方便地访问部署的服务。</p><p>bash</p><h1 id="清理"><a href="#清理" class="headerlink" title="清理"></a>清理</h1><p>k3d cluster delete mycluster 2&gt;/dev/null<br>docker system prune -af</p><h1 id="创建集群（方案一）"><a href="#创建集群（方案一）" class="headerlink" title="创建集群（方案一）"></a>创建集群（方案一）</h1><p>k3d cluster create mycluster <br>  –servers 1 <br>  –agents 0 <br>  -p “8080:80@loadbalancer” <br>  -p “8443:443@loadbalancer” <br>  –k3s-arg “--kube-proxy-arg=conntrack-max-per-core=0@server:*” <br>  –image rancher/k3s:v1.21.1-k3s1 <br>  –wait <br>  –timeout 15m<br>如果这个命令执行后仍然出现之前的超时错误，那问题就与端口映射无关了，我们需要继续排查其他原因。</p><blockquote></blockquote><p>终于成功啦0.0<br>``<br>[root@i-698afbd7cee176e6ce8a84dd ~]# k3d cluster create mycluster \</p><blockquote><p>  –servers 1 <br>  –agents 0 <br>  -p “8080:80@loadbalancer” <br>  -p “8443:443@loadbalancer” <br>  –k3s-arg “--kube-proxy-arg=conntrack-max-per-core=0@server:<em>“ <br>  –image rancher/k3s:v1.21.1-k3s1 <br>  –wait <br>  –timeout 15m<br>INFO[0000] portmapping ‘8080:80’ targets the loadbalancer: defaulting to [servers:</em>:proxy agents:<em>:proxy]<br>INFO[0000] portmapping ‘8443:443’ targets the loadbalancer: defaulting to [servers:</em>:proxy agents:*:proxy]<br>INFO[0000] Prep: Network<br>INFO[0000] Created network ‘k3d-mycluster’<br>INFO[0000] Created image volume k3d-mycluster-images<br>INFO[0000] Starting new tools node…<br>INFO[0000] Pulling image ‘ghcr.io/k3d-io/k3d-tools:5.8.3’<br>INFO[0001] Creating node ‘k3d-mycluster-server-0’<br>INFO[0002] Starting node ‘k3d-mycluster-tools’<br>INFO[0002] Pulling image ‘rancher/k3s:v1.21.1-k3s1’<br>INFO[0017] Creating LoadBalancer ‘k3d-mycluster-serverlb’<br>INFO[0018] Pulling image ‘ghcr.io/k3d-io/k3d-proxy:5.8.3’<br>INFO[0024] Using the k3d-tools node to gather environment information<br>INFO[0024] HostIP: using network gateway 172.30.0.1 address<br>INFO[0024] Starting cluster ‘mycluster’<br>INFO[0024] Starting servers…<br>INFO[0024] Starting node ‘k3d-mycluster-server-0’<br>INFO[0034] All agents already running.<br>INFO[0034] Starting helpers…<br>INFO[0034] Starting node ‘k3d-mycluster-serverlb’<br>INFO[0041] Injecting records for hostAliases (incl. host.k3d.internal) and for 2 network members into CoreDNS configmap…<br>INFO[0043] Cluster ‘mycluster’ created successfully!<br>INFO[0043] You can now use it like this:<br>kubectl cluster-info<br>``</p></blockquote><p>第二步：<br>kubectl create service clusterip nginx –tcp=80:80</p><p>第三步：<br>🌐 最后一步完整操作指南</p><ol><li>创建 Ingress 配置文件<br>首先，创建一个名为 nginx-ingress.yaml 的文件：</li></ol><p>bash<br>cat &gt; nginx-ingress.yaml &lt;&lt; ‘EOF’<br>apiVersion: networking.k8s.io/v1<br>kind: Ingress<br>metadata:<br>  name: nginx<br>  annotations:<br>    ingress.kubernetes.io/ssl-redirect: “false”<br>spec:<br>  rules:</p><ul><li>http:<br>  paths:<ul><li>path: /<br>pathType: Prefix<br>backend:<br>  service:<pre><code class="hljs">name: nginxport:  number: 80</code></pre>EOF<br>这个文件的意思是：</li></ul></li></ul><p>创建一个 Ingress 资源，名为 nginx</p><p>关闭 SSL 重定向（只用 HTTP）</p><p>将所有访问 / 路径的请求，转发到名为 nginx 的 Service 的 80 端口</p><ol start="2"><li><p>应用这个配置<br>bash<br>kubectl apply -f nginx-ingress.yaml<br>你应该看到输出：ingress.networking.k8s.io/nginx created</p></li><li><p>验证 Ingress 是否创建成功<br>bash<br>kubectl get ingress<br>输出类似：</p></li></ol><p>text<br>NAME    CLASS    HOSTS   ADDRESS         PORTS   AGE<br>nginx   <none>   *       172.25.0.2      80      10s<br>4. 测试访问<br>现在，打开浏览器访问，或者在命令行测试：</p><p>bash</p><h1 id="命令行测试"><a href="#命令行测试" class="headerlink" title="命令行测试"></a>命令行测试</h1><p>curl localhost:8080</p><h1 id="或者用浏览器打开"><a href="#或者用浏览器打开" class="headerlink" title="或者用浏览器打开"></a>或者用浏览器打开</h1><h1 id="http-localhost-8080"><a href="#http-localhost-8080" class="headerlink" title="http://localhost:8080"></a><a href="http://localhost:8080/">http://localhost:8080</a></h1><p>如果看到 nginx 的欢迎页面，就大功告成了！🎉</p><p>第四步：<br>部署多个pod<br>🚀 方式一：扩容现有部署（最简单）<br>直接在命令行扩容：</p><p>bash</p><h1 id="将-nginx-从1个副本扩容到3个"><a href="#将-nginx-从1个副本扩容到3个" class="headerlink" title="将 nginx 从1个副本扩容到3个"></a>将 nginx 从1个副本扩容到3个</h1><p>kubectl scale deployment nginx –replicas=3<br>查看结果：</p><p>bash<br>kubectl get pods<br>你会看到类似：</p><p>text<br>NAME                     READY   STATUS    RESTARTS   AGE<br>nginx-xxxx-yyyy-1        1/1     Running   0          5m<br>nginx-xxxx-yyyy-2        1/1     Running   0          30s<br>nginx-xxxx-yyyy-3        1/1     Running   0          30s</p><p>🎯 验证负载均衡<br>现在有了 3 个 nginx 副本，Kubernetes 会自动负载均衡：</p><p>bash</p><h1 id="循环访问多次，看返回的-Pod-名称"><a href="#循环访问多次，看返回的-Pod-名称" class="headerlink" title="循环访问多次，看返回的 Pod 名称"></a>循环访问多次，看返回的 Pod 名称</h1><p>for i in {1..6}; do<br>  curl -s localhost:8080 | grep -o “<title>.*</title>“<br>done<br>想看更详细的信息，可以用这个命令：</p><p>bash</p><h1 id="在-nginx-Pod-里创建一个文件来标识自己"><a href="#在-nginx-Pod-里创建一个文件来标识自己" class="headerlink" title="在 nginx Pod 里创建一个文件来标识自己"></a>在 nginx Pod 里创建一个文件来标识自己</h1><p>kubectl exec deployment/nginx – sh -c ‘echo “Pod: $(hostname)” &gt; /usr/share/nginx/html/pod.html’</p><h1 id="然后访问这个页面"><a href="#然后访问这个页面" class="headerlink" title="然后访问这个页面"></a>然后访问这个页面</h1><p>curl localhost:8080/pod.html<br>多运行几次，你会看到不同的 Pod 名称轮流出现。</p><p>第五步：<br>🔄 滚动更新（同时更新所有副本）<br>当你修改镜像版本时，Kubernetes 会逐个更新 Pod：</p><p>bash</p><h1 id="更新镜像版本，同时保持3个副本"><a href="#更新镜像版本，同时保持3个副本" class="headerlink" title="更新镜像版本，同时保持3个副本"></a>更新镜像版本，同时保持3个副本</h1><p>kubectl set image deployment/nginx nginx=nginx:1.25</p><h1 id="观察滚动更新过程"><a href="#观察滚动更新过程" class="headerlink" title="观察滚动更新过程"></a>观察滚动更新过程</h1><p>kubectl rollout status deployment/nginx</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Docker</tag>
+      
+      <tag>Kubernate</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>v2ray搭建</title>
+    <link href="/2026/03/10/2026-03-10-v2ray%E6%90%AD%E5%BB%BA/"/>
+    <url>/2026/03/10/2026-03-10-v2ray%E6%90%AD%E5%BB%BA/</url>
+    
+    <content type="html"><![CDATA[<h1 id="2026-02-11"><a href="#2026-02-11" class="headerlink" title="2026.02.11"></a>2026.02.11</h1><p>bash &lt;(curl -s -L <a href="https://git.io/v2ray-setup.sh">https://git.io/v2ray-setup.sh</a>)</p><p>———- V2Ray 配置信息 ————-</p><p> 地址 (Address) = 154.58.233.77</p><p> 端口 (Port) = 31535</p><p> 用户ID (User ID / UUID) = 7d4b0b70-519e-4cfc-9534-9f80de1f1c7a</p><p> 额外ID (Alter Id) = 0</p><p> 传输协议 (Network) = kcp</p><p> 伪装类型 (header type) = dtls</p><p>———- END ————-</p><p>V2Ray 客户端使用教程: <a href="https://git.io/v2ray-client">https://git.io/v2ray-client</a></p><p>提示: 输入  v2ray url  可生成 vmess URL 链接 / 输入  v2ray qr  可生成二维码链接</p><p>免被墙..推荐使用JMS: <a href="https://www.itblogcn.com/article/1012.html">https://www.itblogcn.com/article/1012.html</a></p><p>Failed to stop firewalld.service: Unit firewalld.service not loaded.<br>Failed to execute operation: No such file or directory</p><p> 该脚本已自动关闭防火墙…</p><p>———- V2Ray vmess URL / V2RayNG v0.4.1+ / V2RayN v2.1+ / 仅适合部分客户端 ————-</p><p>vmess://ewoidiI6ICIyIiwKInBzIjogIm5hbWVfMTU0LjU4LjIzMy43NyIsCiJhZGQiOiAiMTU0LjU4LjIzMy43NyIsCiJwb3J0IjogIjMxNTM1IiwKImlk<br>IjogIjdkNGIwYjcwLTUxOWUtNGNmYy05NTM0LTlmODBkZTFmMWM3YSIsCiJhaWQiOiAiMCIsCiJuZXQiOiAia2NwIiwKInR5cGUiOiAiZHRscyIsCiJob3N0<br>IjogIiIsCiJwYXRoIjogIiIsCiJ0bHMiOiAiIgp9Cg==</p><p>速度慢?怕被墙?..推荐使用JMS CN2 GIA高速线路: <a href="https://www.itblogcn.com/article/1012.html">https://www.itblogcn.com/article/1012.html</a></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Docker</tag>
+      
+      <tag>Hexo</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>灰度发布（金丝雀）</title>
+    <link href="/2026/03/10/2026-03-10-%E7%81%B0%E5%BA%A6%E5%8F%91%E5%B8%83%EF%BC%88%E9%87%91%E4%B8%9D%E9%9B%80%EF%BC%89/"/>
+    <url>/2026/03/10/2026-03-10-%E7%81%B0%E5%BA%A6%E5%8F%91%E5%B8%83%EF%BC%88%E9%87%91%E4%B8%9D%E9%9B%80%EF%BC%89/</url>
+    
+    <content type="html"><![CDATA[<p>灰度发布（金丝雀）</p><p>📝 更优雅的方案：使用 HPA 控制比例</p><ol><li>准备两个版本的镜像<br>bash<h1 id="构建v1和v2"><a href="#构建v1和v2" class="headerlink" title="构建v1和v2"></a>构建v1和v2</h1>docker build -t my-app:v1 .<br>docker build -t my-app:v2 .<br>k3d image import my-app:v1 -c centos-cluster<br>k3d image import my-app:v2 -c centos-cluster</li><li>创建两个 Deployment（v1稳定版，v2金丝雀）<br>yaml<h1 id="stable-deployment-yaml"><a href="#stable-deployment-yaml" class="headerlink" title="stable-deployment.yaml"></a>stable-deployment.yaml</h1>apiVersion: apps/v1<br>kind: Deployment<br>metadata:<br>name: my-app-stable<br>labels:<br> app: my-app<br> track: stable<br>spec:<br>replicas: 3<br>selector:<br> matchLabels:<br>   app: my-app<br>   track: stable<br>template:<br> metadata:<br>   labels:<pre><code class="hljs"> app: my-app track: stable</code></pre> spec:<br>   containers:<ul><li>name: my-app<br>image: my-app:v1<br>ports:<ul><li>containerPort: 8080</li></ul></li></ul></li></ol><hr><h1 id="canary-deployment-yaml"><a href="#canary-deployment-yaml" class="headerlink" title="canary-deployment.yaml"></a>canary-deployment.yaml</h1><p>apiVersion: apps/v1<br>kind: Deployment<br>metadata:<br>  name: my-app-canary<br>  labels:<br>    app: my-app<br>    track: canary<br>spec:<br>  replicas: 1  # 金丝雀实例<br>  selector:<br>    matchLabels:<br>      app: my-app<br>      track: canary<br>  template:<br>    metadata:<br>      labels:<br>        app: my-app<br>        track: canary<br>    spec:<br>      containers:<br>      - name: my-app<br>        image: my-app:v2  # 新版本<br>        ports:<br>        - containerPort: 8080<br>3. 创建 Service（指向所有版本）<br>yaml</p><h1 id="service-yaml"><a href="#service-yaml" class="headerlink" title="service.yaml"></a>service.yaml</h1><p>apiVersion: v1<br>kind: Service<br>metadata:<br>  name: my-app<br>spec:<br>  selector:<br>    app: my-app  # 选择所有 my-app 的 Pod<br>  ports:</p><ul><li>port: 80<br>targetPort: 8080</li></ul><ol start="4"><li>逐步调整金丝雀实例数量<br>bash<h1 id="初始状态：3个v1-1个v2（25-流量到v2）"><a href="#初始状态：3个v1-1个v2（25-流量到v2）" class="headerlink" title="初始状态：3个v1 + 1个v2（25%流量到v2）"></a>初始状态：3个v1 + 1个v2（25%流量到v2）</h1></li></ol><h1 id="监控一段时间后，如果稳定，增加金丝雀数量"><a href="#监控一段时间后，如果稳定，增加金丝雀数量" class="headerlink" title="监控一段时间后，如果稳定，增加金丝雀数量"></a>监控一段时间后，如果稳定，增加金丝雀数量</h1><p>kubectl scale deployment my-app-canary –replicas=2  # 40%流量到v2<br>kubectl scale deployment my-app-canary –replicas=3  # 50%流量到v2<br>kubectl scale deployment my-app-canary –replicas=6  # 67%流量到v2</p><h1 id="减少稳定版数量"><a href="#减少稳定版数量" class="headerlink" title="减少稳定版数量"></a>减少稳定版数量</h1><p>kubectl scale deployment my-app-stable –replicas=2  # 6个v2 + 2个v1 = 75% v2<br>kubectl scale deployment my-app-stable –replicas=1  # 6个v2 + 1个v1 = 86% v2<br>kubectl scale deployment my-app-stable –replicas=0  # 100% v2</p><h1 id="最后，将金丝雀转为稳定版"><a href="#最后，将金丝雀转为稳定版" class="headerlink" title="最后，将金丝雀转为稳定版"></a>最后，将金丝雀转为稳定版</h1><p>kubectl delete deployment my-app-stable<br>kubectl label deployment my-app-canary track=stable –overwrite<br>🔧 自动化脚本：分阶段滚动更新<br>创建一个脚本 canary-rollout.sh：</p><p>bash<br>#!/bin/bash</p><p>DEPLOYMENT=”my-app”<br>NEW_VERSION=”v2”<br>TOTAL_REPLICAS=4<br>SLEEP_TIME=60  # 每个阶段等待时间（秒）</p><p>echo “=== 开始金丝雀发布 ===”</p><h1 id="阶段1：调整滚动更新策略"><a href="#阶段1：调整滚动更新策略" class="headerlink" title="阶段1：调整滚动更新策略"></a>阶段1：调整滚动更新策略</h1><p>echo “阶段1：配置滚动更新策略”<br>kubectl patch deployment $DEPLOYMENT -p ‘{<br>  “spec”: {<br>    “strategy”: {<br>      “type”: “RollingUpdate”,<br>      “rollingUpdate”: {<br>        “maxSurge”: 1,<br>        “maxUnavailable”: 0<br>      }<br>    }<br>  }<br>}’</p><h1 id="阶段2：更新到新版本（只创建1个新Pod）"><a href="#阶段2：更新到新版本（只创建1个新Pod）" class="headerlink" title="阶段2：更新到新版本（只创建1个新Pod）"></a>阶段2：更新到新版本（只创建1个新Pod）</h1><p>echo “阶段2：部署第一个金丝雀实例”<br>kubectl set image deployment/$DEPLOYMENT *=my-app:$NEW_VERSION<br>sleep 5</p><h1 id="等待第一个金丝雀就绪"><a href="#等待第一个金丝雀就绪" class="headerlink" title="等待第一个金丝雀就绪"></a>等待第一个金丝雀就绪</h1><p>echo “等待金丝雀实例就绪…”<br>kubectl wait –for=condition=available –timeout=120s deployment/$DEPLOYMENT</p><h1 id="阶段3：监控金丝雀"><a href="#阶段3：监控金丝雀" class="headerlink" title="阶段3：监控金丝雀"></a>阶段3：监控金丝雀</h1><p>echo “阶段3：监控金丝雀 $SLEEP_TIME 秒”<br>for i in $(seq 1 $SLEEP_TIME); do<br>    echo -n “.”<br>    sleep 1<br>done<br>echo “”</p><h1 id="检查是否有错误"><a href="#检查是否有错误" class="headerlink" title="检查是否有错误"></a>检查是否有错误</h1><p>ERROR_COUNT=$(kubectl logs -l app=$DEPLOYMENT –tail=100 | grep -i error | wc -l)<br>if [ $ERROR_COUNT -gt 10 ]; then<br>    echo “错误数过多，回滚！”<br>    kubectl rollout undo deployment/$DEPLOYMENT<br>    exit 1<br>fi</p><h1 id="阶段4：触发第二次滚动（2个新Pod）"><a href="#阶段4：触发第二次滚动（2个新Pod）" class="headerlink" title="阶段4：触发第二次滚动（2个新Pod）"></a>阶段4：触发第二次滚动（2个新Pod）</h1><p>echo “阶段4：扩展金丝雀到2个实例”<br>kubectl patch deployment $DEPLOYMENT -p ‘{“spec”:{“template”:{“metadata”:{“labels”:{“update”:”step2”}}}}}’<br>sleep $SLEEP_TIME</p><h1 id="阶段5：触发第三次滚动（3个新Pod）"><a href="#阶段5：触发第三次滚动（3个新Pod）" class="headerlink" title="阶段5：触发第三次滚动（3个新Pod）"></a>阶段5：触发第三次滚动（3个新Pod）</h1><p>echo “阶段5：扩展金丝雀到3个实例”<br>kubectl patch deployment $DEPLOYMENT -p ‘{“spec”:{“template”:{“metadata”:{“labels”:{“update”:”step3”}}}}}’<br>sleep $SLEEP_TIME</p><h1 id="阶段6：完成全部替换"><a href="#阶段6：完成全部替换" class="headerlink" title="阶段6：完成全部替换"></a>阶段6：完成全部替换</h1><p>echo “阶段6：完成全部替换”<br>kubectl patch deployment $DEPLOYMENT -p ‘{“spec”:{“template”:{“metadata”:{“labels”:{“update”:”final”}}}}}’</p><p>echo “=== 金丝雀发布完成 ===”<br>📊 监控流量分布<br>bash</p><h1 id="实时监控Pod数量"><a href="#实时监控Pod数量" class="headerlink" title="实时监控Pod数量"></a>实时监控Pod数量</h1><p>watch -n 2 ‘kubectl get pods -l app=my-app’</p><h1 id="查看版本分布"><a href="#查看版本分布" class="headerlink" title="查看版本分布"></a>查看版本分布</h1><p>kubectl get pods -l app=my-app -o custom-columns=NAME:.metadata.name,IMAGE:.spec.containers[0].image,STATUS:.status.phase</p><h1 id="模拟流量测试"><a href="#模拟流量测试" class="headerlink" title="模拟流量测试"></a>模拟流量测试</h1><h1 id="在一个终端"><a href="#在一个终端" class="headerlink" title="在一个终端"></a>在一个终端</h1><p>kubectl port-forward svc/my-app 8080:80</p><h1 id="在另一个终端测试"><a href="#在另一个终端测试" class="headerlink" title="在另一个终端测试"></a>在另一个终端测试</h1><p>while true; do<br>    curl -s <a href="http://localhost:8080/version">http://localhost:8080/version</a> 2&gt;/dev/null || echo “error”<br>    sleep 0.5<br>done<br>⚠️ 注意事项<br>滚动更新不是真正的灰度发布，它总是会逐步替换旧版本</p><p>真正的灰度发布需要新老版本共存，通过 Service 权重分配流量</p><p>如果你需要精确控制流量比例，建议使用 Istio 或 Nginx Ingress 的金丝雀功能</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>灰度发布</tag>
+      
+      <tag>k3d</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>docker-hexo</title>
+    <link href="/2026/03/10/2026-03-10-docker-hexo/"/>
+    <url>/2026/03/10/2026-03-10-docker-hexo/</url>
+    
+    <content type="html"><![CDATA[<h1 id="使用docker-运行hexo-镜像"><a href="#使用docker-运行hexo-镜像" class="headerlink" title="使用docker 运行hexo 镜像"></a>使用docker 运行hexo 镜像</h1><h1 id="1-删除已退出的容器"><a href="#1-删除已退出的容器" class="headerlink" title="1. 删除已退出的容器"></a>1. 删除已退出的容器</h1><p>docker rm hexo-blog</p><h1 id="2-使用交互式模式运行，并保持容器运行"><a href="#2-使用交互式模式运行，并保持容器运行" class="headerlink" title="2. 使用交互式模式运行，并保持容器运行"></a>2. 使用交互式模式运行，并保持容器运行</h1><p>docker run -it -d <br>  –name hexo-blog <br>  -p 4000:4000 <br>  -v $(pwd)/go_exercise/blog:/app <br>  spurin/hexo:latest <br>  sh -c “tail -f /dev/null”</p><h1 id="3-进入容器进行操作"><a href="#3-进入容器进行操作" class="headerlink" title="3. 进入容器进行操作"></a>3. 进入容器进行操作</h1><p>docker exec -it hexo-blog sh</p><h1 id="4-在容器内启动-Hexo-服务"><a href="#4-在容器内启动-Hexo-服务" class="headerlink" title="4. 在容器内启动 Hexo 服务"></a>4. 在容器内启动 Hexo 服务</h1><p>cd /app<br>npm install -g hexo-cli<br>hexo init blog<br>cd blog<br>npm install<br>hexo server -p 4000 -i 0.0.0.0</p><p>配置秘钥拉取博客源码<br>``<br>git config –global user.name “maomao”<br>git config –global user.email “<a href="mailto:&#x69;&#106;&#109;&#97;&#x6f;&#109;&#x61;&#111;&#64;&#x31;&#54;&#51;&#46;&#99;&#111;&#109;">&#x69;&#106;&#109;&#97;&#x6f;&#109;&#x61;&#111;&#64;&#x31;&#54;&#51;&#46;&#99;&#111;&#109;</a>“</p><p>ssh-keygen -t rsa -C “<a href="mailto:&#105;&#x6a;&#x6d;&#x61;&#111;&#x6d;&#97;&#111;&#x40;&#49;&#54;&#x33;&#46;&#99;&#111;&#109;">&#105;&#x6a;&#x6d;&#x61;&#111;&#x6d;&#97;&#111;&#x40;&#49;&#54;&#x33;&#46;&#99;&#111;&#109;</a>“<br>``</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Docker</tag>
+      
+      <tag>Hexo</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>k3d</title>
+    <link href="/2026/03/10/2026-03-10-k3d/"/>
+    <url>/2026/03/10/2026-03-10-k3d/</url>
+    
+    <content type="html"><![CDATA[<ol><li>使用k3d创建集群</li></ol><p>centos-cluster 集群名称</p><figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">k3d <span class="hljs-keyword">cluster</span> <span class="hljs-keyword">create</span> centos-<span class="hljs-keyword">cluster</span> \<br>  <span class="hljs-comment">--servers 1 \</span><br>  <span class="hljs-comment">--agents 0 \</span><br>  <span class="hljs-comment">--k3s-arg &quot;--kube-proxy-arg=conntrack-max-per-core=0@server:*&quot; \</span><br>  <span class="hljs-comment">--image rancher/k3s:v1.21.1-k3s1 \</span><br>  <span class="hljs-comment">--wait \</span><br>  <span class="hljs-comment">--timeout 15m</span><br></code></pre></td></tr></table></figure><!-- 成功后是这样的 --><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs gradle">[root@i-<span class="hljs-number">698</span>afbd7cee176e6ce8a84dd yum]# k3d cluster list<br>NAME             SERVERS   AGENTS   LOADBALANCER<br>centos-cluster   <span class="hljs-number">1</span><span class="hljs-regexp">/1       0/</span><span class="hljs-number">0</span>      <span class="hljs-keyword">true</span><br>mycluster        <span class="hljs-number">1</span><span class="hljs-regexp">/1       0/</span><span class="hljs-number">0</span>      <span class="hljs-keyword">true</span><br></code></pre></td></tr></table></figure><ol start="2"><li>创建yaml文件</li></ol><p>vim deployment.yaml<br>``<br>apiVersion: apps/v1<br>kind: Deployment<br>metadata:<br>  name: my-app<br>spec:<br>  replicas: 1<br>  selector:<br>    matchLabels:<br>      app: my-app<br>  template:<br>    metadata:<br>      labels:<br>        app: my-app<br>    spec:<br>      containers:<br>      - name: my-app<br>        image: centos:centos7  # 这里写你的镜像名<br>        ports:<br>        - containerPort: 81<br>        command: [“/bin/bash”]<br>        args: [“-itd”]  # 另一种让容器保持运行的方法</p><hr><p>apiVersion: v1<br>kind: Service<br>metadata:<br>  name: my-app<br>spec:<br>  type: NodePort<br>  ports:<br>    - port: 81<br>      targetPort: 81<br>  selector:<br>    app: my-app</p><p>``</p><ol start="3"><li>执行部署<br><code>kubectl apply -f deployment.yaml</code></li></ol><p>成功输出<br><code>[root@i-698afbd7cee176e6ce8a84dd ~]# kubectl apply -f deployment.yaml deployment.apps/my-app created service/my-app created</code></p><p>清除命令</p><h1 id="1-删除旧的-Deployment-和-Service"><a href="#1-删除旧的-Deployment-和-Service" class="headerlink" title="1. 删除旧的 Deployment 和 Service"></a>1. 删除旧的 Deployment 和 Service</h1><p>kubectl delete deployment my-app<br>kubectl delete svc my-app</p><p>docker打包镜像</p><ol><li>创建dockerfile文件<br>``<h1 id="使用最小的基础镜像"><a href="#使用最小的基础镜像" class="headerlink" title="使用最小的基础镜像"></a>使用最小的基础镜像</h1>FROM alpine:latest</li></ol><h1 id="安装必要的运行时库（如果需要）"><a href="#安装必要的运行时库（如果需要）" class="headerlink" title="安装必要的运行时库（如果需要）"></a>安装必要的运行时库（如果需要）</h1><h1 id="RUN-apk-add-–no-cache-libc6-compat"><a href="#RUN-apk-add-–no-cache-libc6-compat" class="headerlink" title="RUN apk add –no-cache libc6-compat"></a>RUN apk add –no-cache libc6-compat</h1><h1 id="复制你的-Linux-程序"><a href="#复制你的-Linux-程序" class="headerlink" title="复制你的 Linux 程序"></a>复制你的 Linux 程序</h1><p>COPY myapp /usr/local/bin/myapp</p><h1 id="添加执行权限"><a href="#添加执行权限" class="headerlink" title="添加执行权限"></a>添加执行权限</h1><p>RUN chmod +x /usr/local/bin/myapp</p><h1 id="暴露端口（如果程序是网络服务）"><a href="#暴露端口（如果程序是网络服务）" class="headerlink" title="暴露端口（如果程序是网络服务）"></a>暴露端口（如果程序是网络服务）</h1><p>EXPOSE 8080</p><h1 id="直接运行程序（必须是前台进程）"><a href="#直接运行程序（必须是前台进程）" class="headerlink" title="直接运行程序（必须是前台进程）"></a>直接运行程序（必须是前台进程）</h1><p>CMD [“myapp”]<br>``</p><ol start="2"><li>打包镜像<br><code>docker build -t myapp:v1 .</code></li></ol><p>docker ps 查看生成的镜像版本</p><ol start="3"><li>添加本地镜像到cluster<br>``<h1 id="1-先构建镜像"><a href="#1-先构建镜像" class="headerlink" title="1. 先构建镜像"></a>1. 先构建镜像</h1>docker build -t my-app:v1 .</li></ol><h1 id="2-导入到-k3d-集群"><a href="#2-导入到-k3d-集群" class="headerlink" title="2. 导入到 k3d 集群"></a>2. 导入到 k3d 集群</h1><p>k3d image import my-app:v1 -c centos-cluster  # -c 指定你的集群名</p><h1 id="查看导入的镜像是否在集群中"><a href="#查看导入的镜像是否在集群中" class="headerlink" title="查看导入的镜像是否在集群中"></a>查看导入的镜像是否在集群中</h1><p>k3d image list -c centos-cluster</p><h1 id="或直接查看-server-节点"><a href="#或直接查看-server-节点" class="headerlink" title="或直接查看 server 节点"></a>或直接查看 server 节点</h1><p>docker exec k3d-centos-cluster-server-0 crictl images | grep my-app</p><h1 id="3-删除失败的-Pod-让其重新创建"><a href="#3-删除失败的-Pod-让其重新创建" class="headerlink" title="3. 删除失败的 Pod 让其重新创建"></a>3. 删除失败的 Pod 让其重新创建</h1><p>kubectl delete pod my-app-7bf6575c9b-8674l</p><h1 id="Deployment-会自动创建新的-Pod"><a href="#Deployment-会自动创建新的-Pod" class="headerlink" title="Deployment 会自动创建新的 Pod"></a>Deployment 会自动创建新的 Pod</h1><p>``</p><ol start="4"><li>查看日志信息<br>``<h1 id="查看-Pod-的日志"><a href="#查看-Pod-的日志" class="headerlink" title="查看 Pod 的日志"></a>查看 Pod 的日志</h1>kubectl logs my-app-7bf6575c9b-8674l</li></ol><h1 id="查看最后100行"><a href="#查看最后100行" class="headerlink" title="查看最后100行"></a>查看最后100行</h1><p>kubectl logs –tail=100 my-app-7bf6575c9b-8674l</p><h1 id="实时查看日志（类似-tail-f）"><a href="#实时查看日志（类似-tail-f）" class="headerlink" title="实时查看日志（类似 tail -f）"></a>实时查看日志（类似 tail -f）</h1><p>kubectl logs -f my-app-7bf6575c9b-8674l</p><h1 id="查看带时间戳的日志"><a href="#查看带时间戳的日志" class="headerlink" title="查看带时间戳的日志"></a>查看带时间戳的日志</h1><p>kubectl logs –timestamps my-app-7bf6575c9b-8674l<br>``</p><ol start="5"><li>扩容操作<br>``<h1 id="将-nginx-从1个副本扩容到3个"><a href="#将-nginx-从1个副本扩容到3个" class="headerlink" title="将 nginx 从1个副本扩容到3个"></a>将 nginx 从1个副本扩容到3个</h1>kubectl scale deployment nginx –replicas=3<br>``</li></ol><p>6.🔄 滚动更新（同时更新所有副本）<br>当你修改镜像版本时，Kubernetes 会逐个更新 Pod：</p><p>bash</p><h1 id="更新镜像版本，同时保持3个副本"><a href="#更新镜像版本，同时保持3个副本" class="headerlink" title="更新镜像版本，同时保持3个副本"></a>更新镜像版本，同时保持3个副本</h1><p>kubectl set image deployment/nginx nginx=nginx:1.25</p><h1 id="观察滚动更新过程"><a href="#观察滚动更新过程" class="headerlink" title="观察滚动更新过程"></a>观察滚动更新过程</h1><p>kubectl rollout status deployment/nginx</p><ol start="7"><li>切换集群<br>``<!-- 查看集群 -->k3d cluster list</li></ol><p>[root@i-698afbd7cee176e6ce8a84dd ~]# k3d cluster list<br>NAME             SERVERS   AGENTS   LOADBALANCER<br>centos-cluster   1/1       0/0      true<br>mycluster        1/1       0/0      true</p><!-- 切换当前正在使用的集群 --><p>kubectl config use-context k3d-centos-cluster</p><p>centos-cluster 集群名称<br>``</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Docker</tag>
+      
+      <tag>k3d</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>棋牌AI（RL-Card）</title>
+    <link href="/2025/07/11/2025-07-11-%E6%A3%8B%E7%89%8CAI%EF%BC%88RL-Card%EF%BC%89/"/>
+    <url>/2025/07/11/2025-07-11-%E6%A3%8B%E7%89%8CAI%EF%BC%88RL-Card%EF%BC%89/</url>
+    
+    <content type="html"><![CDATA[<h3 id="RL-Card"><a href="#RL-Card" class="headerlink" title="RL-Card"></a>RL-Card</h3><p>起因：最初由于斗地主需要引入AI使用，由于不是由我负责的，也没太了解过这方面东西。</p><p>后来做麻将的时候需要进一步优化AI逻辑，需要做一些优化尝试。</p><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><code class="hljs swift"><span class="hljs-number">2024.01</span>.<span class="hljs-number">23</span><br><span class="hljs-operator">======================================</span><br><br>麻将第三版本优化：<br>采用机器强化学习方式<br><br><span class="hljs-type">RL</span><span class="hljs-operator">-</span><span class="hljs-type">Card</span>:<br><br><span class="hljs-number">1</span>. pth文件如何在go中调用  使用<span class="hljs-type">C</span><span class="hljs-operator">++</span>打开pth文件，<span class="hljs-type">Go嵌入C</span><span class="hljs-operator">++</span>代码实现<br><span class="hljs-number">2</span>. pth文件数据如何使用<br><span class="hljs-number">3</span>. 对应规则生成pth文件<br><br><span class="hljs-number">2024.01</span>.<span class="hljs-number">30</span><br><span class="hljs-operator">======================================</span><br><br>麻将<span class="hljs-type">AI优化思路：</span><br><br><span class="hljs-number">1</span>. 策略细分； 效果不太好客观分辨，此后不做修改<br><span class="hljs-number">2</span>. 麻将查表向听分析；<br><span class="hljs-number">3</span>. 本地存储出牌表数据，由用户操作进行更新<br><span class="hljs-number">4</span>. <span class="hljs-type">RL</span><span class="hljs-operator">-</span><span class="hljs-type">Card</span> 生成数据<br><br><span class="hljs-number">2024.02</span>.<span class="hljs-number">18</span><br><span class="hljs-operator">======================================</span><br><br>复工<br><br><span class="hljs-type">RL</span><span class="hljs-operator">-</span><span class="hljs-type">Card</span> <br>mahjong state<br><br><span class="hljs-number">1</span>. table 桌子上已出的牌<br><span class="hljs-number">2</span>. current_hand 当前手牌<br><span class="hljs-number">3</span>. players_pile 玩家吃碰杠牌<br><span class="hljs-number">4</span>. action_cards 操作牌<br><br><br><span class="hljs-number">1</span>. <span class="hljs-type">ProjectId</span> 值<br><span class="hljs-number">2</span>. <span class="hljs-type">ETCD</span> 匹配开关<br><span class="hljs-number">3</span>. <br><br><br>curl <span class="hljs-operator">-</span><span class="hljs-type">H</span> &#x27;content<span class="hljs-operator">-</span>type:application<span class="hljs-operator">/</span>json&#x27; <span class="hljs-operator">-</span><span class="hljs-type">X</span> <span class="hljs-type">POST</span> <span class="hljs-operator">-</span>d <span class="hljs-string">&quot;&#123;<span class="hljs-subst">\&quot;</span>Param<span class="hljs-subst">\&quot;</span>:&#123;<span class="hljs-subst">\&quot;</span>ID<span class="hljs-subst">\&quot;</span>:60771863,<span class="hljs-subst">\&quot;</span>Desc<span class="hljs-subst">\&quot;</span>:<span class="hljs-subst">\&quot;</span>test<span class="hljs-subst">\&quot;</span>,<span class="hljs-subst">\&quot;</span>PropChanges<span class="hljs-subst">\&quot;</span>:[&#123;<span class="hljs-subst">\&quot;</span>PropID<span class="hljs-subst">\&quot;</span>:2,<span class="hljs-subst">\&quot;</span>AfterCount<span class="hljs-subst">\&quot;</span>:108,<span class="hljs-subst">\&quot;</span>ChangeCount<span class="hljs-subst">\&quot;</span>:10&#125;]&#125;&#125;&quot;</span> <span class="hljs-string">&quot;http://127.0.0.1:8888&quot;</span><br><br><br>&#123;\<span class="hljs-string">&quot;hand<span class="hljs-subst">\&quot;</span>:[&#123;<span class="hljs-subst">\&quot;</span>bamboo<span class="hljs-subst">\&quot;</span>:1&#125;,&#123;<span class="hljs-subst">\&quot;</span>bamboo<span class="hljs-subst">\&quot;</span>:2&#125;,&#123;<span class="hljs-subst">\&quot;</span>characters<span class="hljs-subst">\&quot;</span>:3&#125;,&#123;<span class="hljs-subst">\&quot;</span>characters<span class="hljs-subst">\&quot;</span>:9&#125;,&#123;<span class="hljs-subst">\&quot;</span>characters<span class="hljs-subst">\&quot;</span>:9&#125;],<span class="hljs-subst">\&quot;</span>piles<span class="hljs-subst">\&quot;</span>:[[[&#123;<span class="hljs-subst">\&quot;</span>bamboo<span class="hljs-subst">\&quot;</span>:5&#125;,&#123;<span class="hljs-subst">\&quot;</span>bamboo<span class="hljs-subst">\&quot;</span>:5&#125;,&#123;<span class="hljs-subst">\&quot;</span>bamboo<span class="hljs-subst">\&quot;</span>:5&#125;]]],<span class="hljs-subst">\&quot;</span>tables<span class="hljs-subst">\&quot;</span>:[&#123;<span class="hljs-subst">\&quot;</span>characters<span class="hljs-subst">\&quot;</span>:5&#125;,&#123;<span class="hljs-subst">\&quot;</span>characters<span class="hljs-subst">\&quot;</span>:5&#125;,&#123;<span class="hljs-subst">\&quot;</span>characters<span class="hljs-subst">\&quot;</span>:5&#125;]&#125;</span><br><span class="hljs-string"></span><br><span class="hljs-string"></span><br><span class="hljs-string">curl -H &#x27;content-type:application/json&#x27; -X POST -d &quot;</span>&#123;\<span class="hljs-string">&quot;hand<span class="hljs-subst">\&quot;</span>:[<span class="hljs-subst">\&quot;</span>bamboo-1<span class="hljs-subst">\&quot;</span>,<span class="hljs-subst">\&quot;</span>bamboo-2<span class="hljs-subst">\&quot;</span>,<span class="hljs-subst">\&quot;</span>bamboo-3<span class="hljs-subst">\&quot;</span>,<span class="hljs-subst">\&quot;</span>characters-9<span class="hljs-subst">\&quot;</span>,<span class="hljs-subst">\&quot;</span>characters-9<span class="hljs-subst">\&quot;</span>],<span class="hljs-subst">\&quot;</span>piles<span class="hljs-subst">\&quot;</span>:[[<span class="hljs-subst">\&quot;</span>bamboo-5<span class="hljs-subst">\&quot;</span>,<span class="hljs-subst">\&quot;</span>bamboo-5<span class="hljs-subst">\&quot;</span>,<span class="hljs-subst">\&quot;</span>bamboo-5<span class="hljs-subst">\&quot;</span>],[],[],[]],<span class="hljs-subst">\&quot;</span>table<span class="hljs-subst">\&quot;</span>:[<span class="hljs-subst">\&quot;</span>characters-5<span class="hljs-subst">\&quot;</span>,<span class="hljs-subst">\&quot;</span>characters-5<span class="hljs-subst">\&quot;</span>,<span class="hljs-subst">\&quot;</span>characters-5<span class="hljs-subst">\&quot;</span>]&#125;&quot;</span> <span class="hljs-string">&quot;http://192.168.1.106:8888&quot;</span><br><br><br>run_rl.py <span class="hljs-operator">--</span>env mahjong <span class="hljs-operator">--</span>num_episodes <span class="hljs-number">10000</span> <span class="hljs-operator">--</span>log_dir experiments<span class="hljs-operator">/</span>mahjong_dqn_result_10000<span class="hljs-operator">/</span> <span class="hljs-operator">--</span>load_checkpoint_path experiments<span class="hljs-operator">/</span>mahjong_dqn_result_10000<span class="hljs-operator">/</span>checkpoint_dqn.pt<br><br><br>训练过程：<br><br><span class="hljs-number">1</span>. <span class="hljs-number">5000</span>次<br><span class="hljs-number">2</span>. <span class="hljs-number">10000</span>次<br><span class="hljs-number">3</span>. <span class="hljs-number">20000</span>次<br><br><span class="hljs-keyword">set</span> <span class="hljs-type">GOOS</span><span class="hljs-operator">=</span>linux<br><span class="hljs-keyword">set</span> <span class="hljs-type">GOARCH</span><span class="hljs-operator">=</span>amd64<br><br></code></pre></td></tr></table></figure><p>以上是较早版本的优化思路</p><ol><li>仍旧是对源代码中的出牌策略进行细分调整，优化过程中发现，优化的策略参数调整往往达不到满意的程度（各种对局情况下，出牌效果不稳定，会出现这局这样优化是好的，下一局使用这个策略算法却是负优化）于是，在调整一段时间后，确定一个相对稳定的版本，便不再在此思路上费功夫。</li><li>麻将向听前进算法，思路源于麻将胡牌中最早接触的日式查表法。想着是不是可以计算需要几手才能胡，于是查找相关资料，确有人这么尝试过。理论上来讲，此算法若是稳定的话，时间复杂度上会好很多。结果是不稳定，具体过程不太记得了，就此略过。</li><li>思路参考于：机器自学习。想着是不是可以实时获取用户出牌数据，动态调整出牌数据库。止步于理论思考阶段，并未真正实现此逻辑（数据量会与日俱增，用户数据不可控，单一从胜率来看，数据浮动太大）</li><li>RL-Card代码训练模型，然后加载模型提供接口，程序中调用。</li></ol><p>关于RL-Card最早了解于项目中斗地主的AI，源于斗零（DouZero）快手出品。</p><p>后续了解到RL-Card棋牌AI训练。</p><p>最初的时候使用run-rl.py 执行1万次，训练出模型加载代入已有麻将使用，效果感觉和版本1的策略细分差不多，甚至有时候还不如，后续因为别的工作安排便暂停了这方面研究。</p><p>最近又有大把时间可以研究下其他的，于是又开始学习线性代数（学的头大，不想学了）、了解大模型知识（也挺头大，专业名次太多）、刷题（刷不动，只好跟着官解一步步写程序逻辑）、跑RL-Card程序，如下记录：</p><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-number">2025.07</span>.<span class="hljs-number">03</span><br><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><br>RL-Card<br><br>run_rl.py --env mahjong --cuda <span class="hljs-number">0</span> --num_episodes <span class="hljs-number">100</span> --log_dir experiments/mahjong_dqn_result_1000000/ --load_checkpoint_path experiments/mahjong_dqn_result_5000/checkpoint_dqn.pt<br><br><br><span class="hljs-number">2025.07</span>.<span class="hljs-number">10</span><br><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><span class="hljs-operator">=</span><br>系统更新重启 导致程序中断 功亏一篑<br><br>run_rl.py --env mahjong --cuda <span class="hljs-number">0</span> --num_episodes <span class="hljs-number">100000</span> --log_dir experiments/mahjong_dqn_result_1000000/ --load_checkpoint_path experiments/mahjong_dqn_result_5000/checkpoint_dqn.pt<br><br>使用加载模型参数 二次训练方式 <br>单次跑<span class="hljs-number">10</span>万次 <br>累计<span class="hljs-number">10</span>次达到百万训练次数<br></code></pre></td></tr></table></figure><p>以下详细介绍一下过程：</p><ol><li><p>运行run_rl.py程序；</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">/**使用python3执行</span><br><span class="hljs-comment">查看报错，安装对应的引用包程序</span><br><span class="hljs-comment">执行命令，大概这样子*/</span><br>run_rl.py --env mahjong --num_episodes <span class="hljs-number">10000</span> --log_dir experiments/mahjong_dqn_result_10000/<br></code></pre></td></tr></table></figure></li><li><p>加载模型，实现python接口(以下代码依赖RL-Card代码)；</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><code class="hljs python"><br><br><span class="hljs-keyword">from</span> http.server <span class="hljs-keyword">import</span> HTTPServer, BaseHTTPRequestHandler<br><span class="hljs-keyword">from</span> examples.experiments.mahjong_dqn_result.mahjong <span class="hljs-keyword">import</span> MahjongModel <span class="hljs-keyword">as</span> Model<br><span class="hljs-keyword">from</span> rlcard.games.mahjong.card <span class="hljs-keyword">import</span> MahjongCard <span class="hljs-keyword">as</span> Card<br><br><span class="hljs-comment"># hand = []</span><br><span class="hljs-comment"># hand.append(Card(&#x27;bamboo&#x27;,&#x27;1&#x27;))</span><br><span class="hljs-comment"># hand.append(Card(&#x27;bamboo&#x27;,&#x27;2&#x27;))</span><br><span class="hljs-comment"># hand.append(Card(&#x27;characters&#x27;,&#x27;3&#x27;))</span><br><span class="hljs-comment"># # hand.append(Card(&#x27;bamboo&#x27;,&#x27;4&#x27;))</span><br><span class="hljs-comment"># # hand.append(Card(&#x27;bamboo&#x27;,&#x27;5&#x27;))</span><br><span class="hljs-comment"># # hand.append(Card(&#x27;bamboo&#x27;,&#x27;6&#x27;))</span><br><span class="hljs-comment"># # hand.append(Card(&#x27;bamboo&#x27;,&#x27;7&#x27;))</span><br><span class="hljs-comment"># # hand.append(Card(&#x27;bamboo&#x27;,&#x27;8&#x27;))</span><br><span class="hljs-comment"># # hand.append(Card(&#x27;bamboo&#x27;,&#x27;9&#x27;))</span><br><span class="hljs-comment"># # hand.append(Card(&#x27;bamboo&#x27;,&#x27;1&#x27;))</span><br><span class="hljs-comment"># # hand.append(Card(&#x27;bamboo&#x27;,&#x27;2&#x27;))</span><br><span class="hljs-comment"># # hand.append(Card(&#x27;bamboo&#x27;,&#x27;3&#x27;))</span><br><span class="hljs-comment"># hand.append(Card(&#x27;characters&#x27;,&#x27;9&#x27;))</span><br><span class="hljs-comment"># hand.append(Card(&#x27;characters&#x27;,&#x27;9&#x27;))</span><br><br><span class="hljs-comment"># pile = []</span><br><span class="hljs-comment"># pile.append(Card(&#x27;bamboo&#x27;,&#x27;5&#x27;))</span><br><span class="hljs-comment"># pile.append(Card(&#x27;bamboo&#x27;,&#x27;5&#x27;))</span><br><span class="hljs-comment"># pile.append(Card(&#x27;bamboo&#x27;,&#x27;5&#x27;))</span><br><br><span class="hljs-comment"># piles = [[pile],[],[],[]]</span><br><br><span class="hljs-comment"># table = []</span><br><span class="hljs-comment"># table.append(Card(&#x27;characters&#x27;,&#x27;5&#x27;))</span><br><span class="hljs-comment"># table.append(Card(&#x27;characters&#x27;,&#x27;5&#x27;))</span><br><span class="hljs-comment"># table.append(Card(&#x27;characters&#x27;,&#x27;5&#x27;))</span><br><br><span class="hljs-comment"># action = Model().eval(hand,piles,table)</span><br><span class="hljs-comment"># print(&quot;action:&quot;,action)</span><br><br><br><br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Request</span>(<span class="hljs-title class_ inherited__">BaseHTTPRequestHandler</span>):<br>    <span class="hljs-comment">#通过类继承，新定义类</span><br>    timeout = <span class="hljs-number">5</span><br>    server_version = <span class="hljs-string">&#x27;Apache&#x27;</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">do_GET</span>(<span class="hljs-params">self</span>):<br>        <span class="hljs-comment">#在新类中定义get的内容（当客户端向该服务端使用get请求时，本服务端将如下运行）</span><br>        self.send_response(<span class="hljs-number">200</span>)<br>        self.send_header(<span class="hljs-string">&quot;type&quot;</span>,<span class="hljs-string">&quot;get&quot;</span>) <span class="hljs-comment">#设置响应头，可省略或设置多个</span><br>        self.end_headers() <br><br>        msg = <span class="hljs-number">123</span> <span class="hljs-comment">#要返回给客户端的信息</span><br>        msg = <span class="hljs-built_in">str</span>(msg).encode() <span class="hljs-comment">#转为str再转为byte格式</span><br><br>        self.wfile.write(msg) <span class="hljs-comment">#将byte格式的信息返回给客户端</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">do_POST</span>(<span class="hljs-params">self</span>):<br>        <span class="hljs-comment">#在新类中定义post的内容（当客户端向该服务端使用post请求时，本服务端将如下运行）</span><br>        data = self.rfile.read(<span class="hljs-built_in">int</span>(self.headers[<span class="hljs-string">&#x27;content-length&#x27;</span>])) <span class="hljs-comment">#获取从客户端传入的参数（byte格式）</span><br>        json_data = data.decode() <span class="hljs-comment">#将byte格式转为str格式</span><br>        <span class="hljs-built_in">print</span>(<span class="hljs-built_in">type</span>(json_data),json_data)<br><br>        model = Model()<br>        hand, piles, table = model.decode_str(json_data)<br>        action = model.<span class="hljs-built_in">eval</span>(hand,piles,table)<br>        action_str = model.action2str(action)<br>        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;action&quot;</span>,action,action_str)<br><br>        self.send_response(<span class="hljs-number">200</span>)<br>        self.send_header(<span class="hljs-string">&quot;type&quot;</span>,<span class="hljs-string">&quot;post&quot;</span>) <span class="hljs-comment">#设置响应头，可省略或设置多个</span><br>        self.end_headers()<br><br>        msg = action_str<br>        msg = <span class="hljs-built_in">str</span>(msg).encode() <span class="hljs-comment">#转为str再转为byte格式</span><br>        self.wfile.write(msg) <span class="hljs-comment">#将byte格式的信息返回给客户端</span><br><br><br>host = (<span class="hljs-string">&#x27;0.0.0.0&#x27;</span>,<span class="hljs-number">8888</span>) <span class="hljs-comment">#设定地址与端口号，&#x27;localhost&#x27;等价于&#x27;127.0.0.1&#x27;</span><br>server = HTTPServer(host, Request) <span class="hljs-comment">#根据地址端口号和新定义的类，创建服务器实例</span><br>server.serve_forever() <span class="hljs-comment">#开启服务</span><br></code></pre></td></tr></table></figure><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs shell">// 测试接口<br>curl -H &#x27;content-type:application/json&#x27; -X POST -d &quot;&#123;\&quot;hand\&quot;:[\&quot;bamboo-1\&quot;,\&quot;bamboo-2\&quot;,\&quot;bamboo-3\&quot;,\&quot;characters-9\&quot;,\&quot;characters-9\&quot;],\&quot;piles\&quot;:[[\&quot;bamboo-5\&quot;,\&quot;bamboo-5\&quot;,\&quot;bamboo-5\&quot;],[],[],[]],\&quot;table\&quot;:[\&quot;characters-5\&quot;,\&quot;characters-5\&quot;,\&quot;characters-5\&quot;]&#125;&quot; &quot;http://192.168.1.106:8888&quot;<br></code></pre></td></tr></table></figure></li><li><p>cuda模式全面启用；</p></li></ol><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs awk"><span class="hljs-number">1</span>. Nvidia更新驱动程序 https:<span class="hljs-regexp">//</span>www.nvidia.cn<span class="hljs-regexp">/geforce/</span>drivers/<br><span class="hljs-number">2</span>. 在命令行中输入【nvidia-smi】可以当前显卡驱动版本和cuda版本<br>Driver Version:设备版本<br>CUDA Version:CUDA能安装的最高版本<br>根据显示，电脑的显卡配置为NVIDIA，显卡驱动版本为：Driver Version: <span class="hljs-number">527.47</span>，CUDA 的版本为：CUDA Version <span class="hljs-number">12.0</span>。因此能安装的Cuda最高版本是<span class="hljs-number">12.0</span>，也可以安装<span class="hljs-number">12.0</span>以下版本。<br><span class="hljs-number">3</span>. CUDA版本选择<br>根据显卡驱动 和 CUDA版本对应关系选择 CUDA<br>文档地址：https:<span class="hljs-regexp">//</span>docs.nvidia.com<span class="hljs-regexp">/cuda/</span>cuda-toolkit-release-notes/index.html<span class="hljs-comment">#cuda-driver</span><br><span class="hljs-number">4</span>. CUDA版本下载<br>下载地址：https:<span class="hljs-regexp">//</span>developer.nvidia.com/cuda-toolkit-archive<br><span class="hljs-number">5</span>. 命令行输入 nvcc --version 查看安装版本<br><br></code></pre></td></tr></table></figure><ol start="4"><li>加参数 -cuda 0 启动GPU加速</li></ol><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs stylus">run_rl<span class="hljs-selector-class">.py</span> <span class="hljs-attr">--env</span> mahjong <span class="hljs-attr">--cuda</span> <span class="hljs-number">0</span> <span class="hljs-attr">--log_dir</span> experiments/mahjong_dqn_result_3/ <span class="hljs-attr">--save_every</span> <span class="hljs-number">1000</span><br></code></pre></td></tr></table></figure><p>​        发现速度较慢，nvidia-smi dmon 命令实时查看sm(GPU占用率)一直在10%左右波动。</p><p>​        证明：未充分释放GPU性能。</p><p>​    解决办法：</p><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs stylus"><span class="hljs-number">1</span>. 原因：没有安装torchvision 猜测CPU和GPU无法正常协作运行<br>安装后，GPU利用率有提升，但波动幅度变大<br><br>一、确保Pytorch与TorchVision是<span class="hljs-built_in">CUDA</span>(GPU)版本<br>参考链接：【Xiang哥避坑指南】YOLOV5只在CPU跑不在GPU跑的问题。<br>在Python终端下操作：<br><span class="hljs-number">1</span>、Pytorch<br><br>import torch<br><span class="hljs-function"><span class="hljs-title">print</span><span class="hljs-params">(torch.__version__)</span></span> <br>#上方的_是两个 杠杠<br>AI写代码<br>python<br>运行<br><span class="hljs-number">1</span><br><span class="hljs-number">2</span><br><span class="hljs-number">3</span><br><span class="hljs-number">2</span>、TorchVision<br><br>import torchvision<br><span class="hljs-function"><span class="hljs-title">print</span><span class="hljs-params">(torchvision.__version__)</span></span> <br>#上方的_是两个 杠杠<br>AI写代码<br>python<br>运行<br><span class="hljs-number">1</span><br><span class="hljs-number">2</span><br><span class="hljs-number">3</span><br>输出的结果是+cu就是<span class="hljs-built_in">CUDA</span>(GPU)<br>输出的结果是+cpu就是CPU<br>————————————————<br><br>                            版权声明：本文为博主原创文章，遵循 CC <span class="hljs-number">4.0</span> BY-SA 版权协议，转载请附上原文出处链接和本声明。<br>                        <br>原文链接：https:<span class="hljs-comment">//blog.csdn.net/qq_45831414/article/details/135556280</span><br></code></pre></td></tr></table></figure><p>代码中添加如下设置：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><br><span class="hljs-keyword">from</span> torch.utils.data <span class="hljs-keyword">import</span> DataLoader<br><br><span class="hljs-comment"># 启用多进程并行读取数据</span><br>DataLoader.num_workers=<span class="hljs-number">8</span><br><span class="hljs-comment"># 设置共享内存 pin_memory</span><br>DataLoader.pin_memory=<span class="hljs-literal">True</span><br>DataLoader.prefetch_factor=<span class="hljs-number">2</span><br>DataLoader.batch_size=<span class="hljs-number">32</span><br></code></pre></td></tr></table></figure><p>最终使用命令训练（Gpu初始利用率在50左右浮动，后续在50、60、70波动）</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">/d/soft/python36/python run_rl.py --env mahjong --cuda 0 --num_episodes 1000000 --log_dir experiments/mahjong_dqn_result_4/ --evaluate_every 10000 --save_every 1000<br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    <categories>
+      
+      <category>工作【间歇性记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>棋牌AI</tag>
+      
+      <tag>DQN</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Go性能调优</title>
+    <link href="/2023/12/26/2023-12-26-Go%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/"/>
+    <url>/2023/12/26/2023-12-26-Go%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/</url>
+    
+    <content type="html"><![CDATA[<ol><li><p>源程序main函数添加代码如下：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">go</span> <span class="hljs-function"><span class="hljs-keyword">func</span><span class="hljs-params">()</span></span> &#123;<br>log.Println(http.ListenAndServe(<span class="hljs-string">&quot;:6060&quot;</span>, <span class="hljs-literal">nil</span>))<br>&#125;()<br></code></pre></td></tr></table></figure></li><li><p>引入头文件如下：</p><figure class="highlight haxe"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs haxe"><span class="hljs-literal">_</span> <span class="hljs-string">&quot;net/http/pprof&quot;</span><br></code></pre></td></tr></table></figure></li><li><p>可直接使用网页打开</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">http:<span class="hljs-regexp">//</span><span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">6060</span><span class="hljs-regexp">/debug/</span>pprof/<br></code></pre></td></tr></table></figure></li><li><p>通过交互式终端使用</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">go tool pprof http:<span class="hljs-regexp">//</span>localhost:<span class="hljs-number">6060</span><span class="hljs-regexp">/debug/</span>pprof/profile\?seconds\=<span class="hljs-number">60</span><br></code></pre></td></tr></table></figure><p>此命令会采集60秒cpu数据，采集完成后使用top查看资源开销情况</p><figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs erlang">(pprof) top10<br>Showing nodes accounting for <span class="hljs-number">36.23</span>s, <span class="hljs-number">97.26</span><span class="hljs-comment">% of 37.25s total</span><br>Dropped <span class="hljs-number">80</span> nodes (cum &lt;= <span class="hljs-number">0.19</span>s)<br>Showing top <span class="hljs-number">10</span> nodes out <span class="hljs-keyword">of</span> <span class="hljs-number">34</span><br>      flat  flat<span class="hljs-comment">%   sum%        cum   cum%  Name</span><br>    <span class="hljs-number">32.63</span>s <span class="hljs-number">87.60</span><span class="hljs-comment">% 87.60%     32.70s 87.79%  syscall.syscall</span><br>     <span class="hljs-number">0.87</span>s  <span class="hljs-number">2.34</span><span class="hljs-comment">% 89.93%      0.88s  2.36%  runtime.stringtoslicebyte</span><br>     <span class="hljs-number">0.69</span>s  <span class="hljs-number">1.85</span><span class="hljs-comment">% 91.79%      0.69s  1.85%  runtime.memmove</span><br>     <span class="hljs-number">0.52</span>s  <span class="hljs-number">1.40</span><span class="hljs-comment">% 93.18%      0.52s  1.40%  runtime.nanotime</span><br>     ...<br>(pprof) <br></code></pre></td></tr></table></figure><ul><li>flat：函数自身的运行耗时。</li><li>flat%：函数自身在 CPU 运行耗时总比例。</li><li>sum%：函数自身累积使用 CPU 总比例。</li><li>cum：函数自身及其调用函数的运行总耗时。</li><li>cum%：函数自身及其调用函数的运行耗时总比例。</li><li>Name：函数名。</li></ul><hr><p>其他命令详见help!</p><p><a href="https://golang2.eddycjy.com/posts/ch6/01-pprof-1/">原文地址</a></p></li></ol>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Go</tag>
+      
+      <tag>Pprof</tag>
+      
+      <tag>性能调优</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>openssl生成.pem证书文件</title>
+    <link href="/2023/04/12/2023-04-12-openssl%E7%94%9F%E6%88%90.pem%E8%AF%81%E4%B9%A6%E6%96%87%E4%BB%B6/"/>
+    <url>/2023/04/12/2023-04-12-openssl%E7%94%9F%E6%88%90.pem%E8%AF%81%E4%B9%A6%E6%96%87%E4%BB%B6/</url>
+    
+    <content type="html"><![CDATA[<ol><li>生成方法</li></ol><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs stylus"><span class="hljs-number">1</span>、生成RSA密钥的方法 <br> <br>openssl genrsa -des3 -out privkey<span class="hljs-selector-class">.pem</span> <span class="hljs-number">2048</span> <br>这个命令会生成一个<span class="hljs-number">2048</span>位的密钥，同时有一个des3方法加密的密码，如果你不想要每次都输入密码，可以改成： <br>openssl genrsa -out privkey<span class="hljs-selector-class">.pem</span> <span class="hljs-number">2048</span> <br>建议用<span class="hljs-number">2048</span>位密钥，少于此可能会不安全或很快将不安全。 <br> <br><span class="hljs-number">2</span>、生成一个证书请求 <br>openssl req -new -key privkey<span class="hljs-selector-class">.pem</span> -out cert<span class="hljs-selector-class">.csr</span> <br>这个命令将会生成一个证书请求，当然，用到了前面生成的密钥privkey.pem文件 <br>这里将生成一个新的文件cert.csr，即一个证书请求文件，你可以拿着这个文件去数字证书颁发机构（即CA）申请一个数字证书。CA会给你一个新的文件cacert.pem，那才是你的数字证书。 <br> <br>如果是自己做测试，那么证书的申请机构和颁发机构都是自己。就可以用下面这个命令来生成证书： <br>openssl req -new -x509 -key privkey<span class="hljs-selector-class">.pem</span> -out cacert<span class="hljs-selector-class">.pem</span> -days <span class="hljs-number">1095</span> <br>这个命令将用上面生成的密钥privkey.pem生成一个数字证书cacert<span class="hljs-selector-class">.pem</span> <br> <br><span class="hljs-number">3</span>、使用数字证书和密钥 <br>有了privkey.pem和cacert.pem文件后就可以在自己的程序中使用了，比如做一个加密通讯的服务器<br></code></pre></td></tr></table></figure><p><a href="https://blog.csdn.net/sirobot/article/details/115765132">参考原文【使用OpenSSL生成证书 pem文件的生成 celery Security】</a></p><ol start="2"><li>校验生成证书md5是否匹配</li></ol><figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs maxima">openssl x509 -noout -<span class="hljs-built_in">modulus</span> -<span class="hljs-keyword">in</span> certificate.crt | openssl md5<br>openssl rsa -noout -<span class="hljs-built_in">modulus</span> -<span class="hljs-keyword">in</span> privateKey.<span class="hljs-built_in">key</span> | openssl md5<br>openssl req -noout -<span class="hljs-built_in">modulus</span> -<span class="hljs-keyword">in</span> CSR.csr | openssl md5<br></code></pre></td></tr></table></figure><p><a href="https://www.chinassl.net/ssltools/match-ssl-details-commands.html">参考原文【SSL在线工具】</a></p><ol start="3"><li>服务器代码配置</li></ol><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">if</span> a.sc.Protocol == <span class="hljs-string">&quot;wss&quot;</span> &#123;<br>config := &amp;tls.Config&#123;&#125;<br>config.NextProtos = []<span class="hljs-type">string</span>&#123;<span class="hljs-string">&quot;http/1.1&quot;</span>&#125;<br><br>config.Certificates = <span class="hljs-built_in">make</span>([]tls.Certificate, <span class="hljs-number">1</span>)<br>config.Certificates[<span class="hljs-number">0</span>], err = tls.LoadX509KeyPair(a.sc.CertFile, a.sc.KeyFile)<br><span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>logger.Logger.Error(err)<br><span class="hljs-keyword">return</span> <span class="hljs-literal">nil</span><br>&#125;<br><br>ln = tls.NewListener(ln, config)<br>&#125;<br></code></pre></td></tr></table></figure><ol start="4"><li>客户端代码配置</li></ol><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-comment">// wss需有下行配置</span><br>dialer := websocket.Dialer&#123;TLSClientConfig: &amp;tls.Config&#123;RootCAs: <span class="hljs-literal">nil</span>, InsecureSkipVerify: <span class="hljs-literal">true</span>&#125;&#125;<br>conn, _, err := dialer.Dial(<span class="hljs-string">&quot;wss://192.168.1.106:33002/&quot;</span>, <span class="hljs-literal">nil</span>)<br><span class="hljs-keyword">if</span> err != <span class="hljs-literal">nil</span> &#123;<br>log.Fatal(err)<br>&#125;<br></code></pre></td></tr></table></figure><p><a href="https://blog.csdn.net/m0_46550201/article/details/127108723">参考原文【go使用wss连接websocket服务器端,并发送数据，和接收服务器端不断传进来的消息】</a></p><ol start="5"><li>附带一个js使用ws简历连接方法</li></ol><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs js">&lt;!<span class="hljs-variable constant_">DOCTYPE</span> html&gt;<br><span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span></span><br><span class="language-xml">    <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>WebSocket Test<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span></span><br><span class="language-xml">    <span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="language-javascript"><span class="language-xml">        <span class="hljs-keyword">var</span> ws = <span class="hljs-keyword">new</span> <span class="hljs-title class_">WebSocket</span>(<span class="hljs-string">&quot;ws://192.168.1.106:33002/&quot;</span>);</span></span><br><span class="language-javascript"><span class="language-xml">        ws.<span class="hljs-property">onopen</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) &#123;</span></span><br><span class="language-javascript"><span class="language-xml">            <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;WebSocket connection opened.&quot;</span>);</span></span><br><span class="language-javascript"><span class="language-xml"></span></span><br><span class="language-javascript"><span class="language-xml">        <span class="hljs-keyword">var</span> arrBuffer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayBuffer</span>(<span class="hljs-number">12</span>); <span class="hljs-comment">// 初始化Byte的二进制数据缓冲区</span></span></span><br><span class="language-javascript"><span class="language-xml">        <span class="hljs-keyword">var</span> dataView = <span class="hljs-keyword">new</span> <span class="hljs-title class_">DataView</span>(arrBuffer);</span></span><br><span class="language-javascript"><span class="language-xml"></span></span><br><span class="language-javascript"><span class="language-xml">        <span class="hljs-comment">// 第三个参数 true字节按照小端写入，false大端</span></span></span><br><span class="language-javascript"><span class="language-xml">        dataView.<span class="hljs-title function_">setUint16</span>(<span class="hljs-number">0</span>, <span class="hljs-number">12</span>, <span class="hljs-literal">true</span>);</span></span><br><span class="language-javascript"><span class="language-xml">        dataView.<span class="hljs-title function_">setUint16</span>(<span class="hljs-number">2</span>, <span class="hljs-number">1</span>, <span class="hljs-literal">true</span>);</span></span><br><span class="language-javascript"><span class="language-xml">        dataView.<span class="hljs-title function_">setUint32</span>(<span class="hljs-number">4</span>, <span class="hljs-number">1</span>, <span class="hljs-literal">true</span>);</span></span><br><span class="language-javascript"><span class="language-xml">        dataView.<span class="hljs-title function_">setUint16</span>(<span class="hljs-number">8</span>, <span class="hljs-number">2</span>, <span class="hljs-literal">true</span>);</span></span><br><span class="language-javascript"><span class="language-xml">        dataView.<span class="hljs-title function_">setUint16</span>(<span class="hljs-number">10</span>, -<span class="hljs-number">1004</span>, <span class="hljs-literal">true</span>);</span></span><br><span class="language-javascript"><span class="language-xml">        ws.<span class="hljs-title function_">send</span>(arrBuffer);</span></span><br><span class="language-javascript"><span class="language-xml">        &#125;;</span></span><br><span class="language-javascript"><span class="language-xml">        ws.<span class="hljs-property">onmessage</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">event</span>) &#123;</span></span><br><span class="language-javascript"><span class="language-xml">            <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;Received message: &quot;</span> + event.<span class="hljs-property">data</span>);</span></span><br><span class="language-javascript"><span class="language-xml">        &#125;;</span></span><br><span class="language-javascript"><span class="language-xml">        ws.<span class="hljs-property">onclose</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) &#123;</span></span><br><span class="language-javascript"><span class="language-xml">            <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;WebSocket connection closed.&quot;</span>);</span></span><br><span class="language-javascript"><span class="language-xml">        &#125;;</span></span><br><span class="language-javascript"><span class="language-xml">        ws.<span class="hljs-property">onerror</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">event</span>) &#123;</span></span><br><span class="language-javascript"><span class="language-xml">            <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">&quot;WebSocket error: &quot;</span> + event.<span class="hljs-property">data</span>);</span></span><br><span class="language-javascript"><span class="language-xml">        &#125;;</span></span><br><span class="language-javascript"><span class="language-xml">    </span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></span><br><span class="language-xml"><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span></span><br><br><br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>openssl</tag>
+      
+      <tag>SSL</tag>
+      
+      <tag>WebSocket</tag>
+      
+      <tag>.pem</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>VsCode配置文件</title>
+    <link href="/2023/04/03/2023-04-03-VsCode%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/"/>
+    <url>/2023/04/03/2023-04-03-VsCode%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/</url>
+    
+    <content type="html"><![CDATA[<figure class="highlight xquery"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><code class="hljs xquery">// settings.json<br>&#123;<br>    <span class="hljs-string">&quot;editor.accessibilityPageSize&quot;</span>: <span class="hljs-number">14</span>,<br>    <span class="hljs-string">&quot;editor.fontSize&quot;</span>: <span class="hljs-number">16</span>,<br>    <span class="hljs-string">&quot;workbench.colorTheme&quot;</span>: <span class="hljs-string">&quot;One Dark Theme&quot;</span>,<br>    <span class="hljs-string">&quot;code-runner.languageIdToFileExtensionMap&quot;</span>: &#123;&#125;,<br>    <span class="hljs-string">&quot;editor.minimap.enabled&quot;</span>:<span class="hljs-built_in"> false</span>,<br>    <span class="hljs-string">&quot;go.formatTool&quot;</span>: <span class="hljs-string">&quot;gofmt&quot;</span>,<br>    <span class="hljs-string">&quot;auto-close-tag.activationOnLanguage&quot;</span>: [<br>        <span class="hljs-string">&quot;xml&quot;</span>,<br>        <span class="hljs-string">&quot;php&quot;</span>,<br>        <span class="hljs-string">&quot;blade&quot;</span>,<br>        <span class="hljs-string">&quot;ejs&quot;</span>,<br>        <span class="hljs-string">&quot;jinja&quot;</span>,<br>        <span class="hljs-string">&quot;javascript&quot;</span>,<br>        <span class="hljs-string">&quot;javascriptreact&quot;</span>,<br>        <span class="hljs-string">&quot;typescript&quot;</span>,<br>        <span class="hljs-string">&quot;typescriptreact&quot;</span>,<br>        <span class="hljs-string">&quot;plaintext&quot;</span>,<br>        <span class="hljs-string">&quot;markdown&quot;</span>,<br>        <span class="hljs-string">&quot;vue&quot;</span>,<br>        <span class="hljs-string">&quot;liquid&quot;</span>,<br>        <span class="hljs-string">&quot;erb&quot;</span>,<br>        <span class="hljs-string">&quot;lang-cfml&quot;</span>,<br>        <span class="hljs-string">&quot;cfml&quot;</span>,<br>        <span class="hljs-string">&quot;HTML (EEx)&quot;</span>,<br>        <span class="hljs-string">&quot;HTML (Eex)&quot;</span>,<br>        <span class="hljs-string">&quot;plist&quot;</span><br>    ],<br>    <span class="hljs-string">&quot;go.goroot&quot;</span>: <span class="hljs-string">&quot;&quot;</span>,<br>    <span class="hljs-string">&quot;go.gopath&quot;</span>: <span class="hljs-string">&quot;&quot;</span>,<br>    <span class="hljs-string">&quot;go.inferGopath&quot;</span>:<span class="hljs-built_in"> true</span>,<br>    <span class="hljs-string">&quot;go.autocompleteUnimportedPackages&quot;</span>:<span class="hljs-built_in"> true</span>,<br>    <span class="hljs-string">&quot;go.gocodePackageLookupMode&quot;</span>: <span class="hljs-string">&quot;go&quot;</span>,<br>    <span class="hljs-string">&quot;go.gotoSymbol.includeImports&quot;</span>:<span class="hljs-built_in"> true</span>,<br>    <span class="hljs-string">&quot;go.useCodeSnippetsOnFunctionSuggest&quot;</span>:<span class="hljs-built_in"> true</span>,<br>    <span class="hljs-string">&quot;go.useCodeSnippetsOnFunctionSuggestWithoutType&quot;</span>:<span class="hljs-built_in"> true</span>,<br>    <span class="hljs-string">&quot;go.toolsManagement.autoUpdate&quot;</span>:<span class="hljs-built_in"> true</span>,<br>    <span class="hljs-string">&quot;git.ignoreWindowsGit27Warning&quot;</span>:<span class="hljs-built_in"> true</span>,<br>    <span class="hljs-string">&quot;update.enableWindowsBackgroundUpdates&quot;</span>:<span class="hljs-built_in"> false</span>,<br>    <span class="hljs-string">&quot;workbench.iconTheme&quot;</span>: <span class="hljs-string">&quot;vscode-icons&quot;</span>,<br>    <span class="hljs-string">&quot;vsicons.dontShowNewVersionMessage&quot;</span>:<span class="hljs-built_in"> true</span>,<br>    <span class="hljs-string">&quot;[json]&quot;</span>: &#123;<br>        <span class="hljs-string">&quot;editor.defaultFormatter&quot;</span>: <span class="hljs-string">&quot;HookyQR.beautify&quot;</span><br>    &#125;,<br>    <span class="hljs-string">&quot;security.workspace.trust.untrustedFiles&quot;</span>: <span class="hljs-string">&quot;open&quot;</span>,<br>    <span class="hljs-string">&quot;json.schemas&quot;</span>: [<br>    <br>    ],<br>    <span class="hljs-string">&quot;go.addTags&quot;</span>: &#123;<br>        <span class="hljs-string">&quot;tags&quot;</span>: <span class="hljs-string">&quot;json&quot;</span>,<br>        <span class="hljs-string">&quot;options&quot;</span>: <span class="hljs-string">&quot;json=omitempty&quot;</span>,<br>        <span class="hljs-string">&quot;promptForTags&quot;</span>:<span class="hljs-built_in"> false</span>,<br>        <span class="hljs-string">&quot;transform&quot;</span>: <span class="hljs-string">&quot;camelcase&quot;</span><br>    &#125;,<br>    <span class="hljs-string">&quot;workbench.layoutControl.enabled&quot;</span>:<span class="hljs-built_in"> false</span>,<br>    <span class="hljs-string">&quot;[python]&quot;</span>: &#123;<br>        <span class="hljs-string">&quot;editor.formatOnType&quot;</span>:<span class="hljs-built_in"> true</span><br>    &#125;,<br>&#125;<br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>VsCode</tag>
+      
+      <tag>配置文件</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>VsCode使用正则表达式批量查找替换</title>
+    <link href="/2023/04/03/2023-04-03-VsCode%E4%BD%BF%E7%94%A8%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%89%B9%E9%87%8F%E6%9F%A5%E6%89%BE%E6%9B%BF%E6%8D%A2/"/>
+    <url>/2023/04/03/2023-04-03-VsCode%E4%BD%BF%E7%94%A8%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%89%B9%E9%87%8F%E6%9F%A5%E6%89%BE%E6%9B%BF%E6%8D%A2/</url>
+    
+    <content type="html"><![CDATA[<ol><li>proto2更新到proto3时，部分语法需要修改</li></ol><p>以enum为例：</p><p>proto2中不需要显式声明默认值 0，而在proto3中，总是需要显示声明首行为0值</p><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs abnf">package protocol<span class="hljs-comment">;</span><br><br>enum ErrCode &#123;<br>  OPRC_Sucess <span class="hljs-operator">=</span> <span class="hljs-number">1</span><span class="hljs-comment">; //成功</span><br>  OPRC_Error <span class="hljs-operator">=</span> <span class="hljs-number">2</span><span class="hljs-comment">; //失败</span><br>&#125;<br></code></pre></td></tr></table></figure><p>然后就可以使用Vscode中的查找替换功能，使用正则语法进行匹配。</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs awk">查找正则：(enum )([a-z,A-Z]+)([\space]*)([\&#123;]&#123;<span class="hljs-number">1</span>&#125;)<br>替换语法：<span class="hljs-variable">$1</span><span class="hljs-variable">$2</span><span class="hljs-variable">$3</span><span class="hljs-variable">$4</span>\n<span class="hljs-variable">$2_Default</span> = <span class="hljs-number">0</span> ; <span class="hljs-regexp">//</span>enum默认值<span class="hljs-number">0</span><br><span class="hljs-regexp">//</span> $对应查找正则中的(),<span class="hljs-variable">$1</span>后的数字对应()的顺序,可直接使用VsCode预览替换前后内容<br></code></pre></td></tr></table></figure><p>类似的操作：</p><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs swift">新增头文件 syntax <span class="hljs-operator">=</span> <span class="hljs-string">&quot;proto3&quot;</span>;<br>    (package <span class="hljs-keyword">protocol</span>;) <span class="hljs-operator">---&gt;</span> syntax <span class="hljs-operator">=</span> <span class="hljs-string">&quot;proto3&quot;</span>;\n<span class="hljs-variable">$1</span><br>去除 <span class="hljs-keyword">required</span> 和 <span class="hljs-keyword">optional</span><br>(<span class="hljs-keyword">required</span> ) <span class="hljs-operator">---&gt;</span>  <br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>VsCode</tag>
+      
+      <tag>正则表达式</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>linux系统断电恢复</title>
+    <link href="/2023/02/20/2023-02-20-linux%E5%AE%B9%E5%99%A8%E6%96%AD%E7%94%B5%E6%81%A2%E5%A4%8D/"/>
+    <url>/2023/02/20/2023-02-20-linux%E5%AE%B9%E5%99%A8%E6%96%AD%E7%94%B5%E6%81%A2%E5%A4%8D/</url>
+    
+    <content type="html"><![CDATA[<p>问题：VmWare断电后failed to mount /sysroot.</p><p>原因：sda4内存数据损坏，需要进行磁盘修复操作</p><p>解决办法：</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs awk">mount -f <span class="hljs-regexp">/dev/</span>sda4 /sysroot<br><br>xfs_repair -L <span class="hljs-regexp">/dev/</span>sda4<br><br>init <span class="hljs-number">6</span><br></code></pre></td></tr></table></figure><p>以上内容参考：<a href="https://itrunbooks.com/coreos-boot-failure-sysroot-mount-mount-proces-exited-codeexited-status32">CoreOS Boot failure, sysroot.mount: mount proces exited, code=exited status=32</a></p><p>可以先进行 ls /dev/mapper/操作查看是否存在 centos-root</p><p>存在的话可先进行以下操作，尝试恢复。</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs awk">ls <span class="hljs-regexp">/dev/m</span>apper/<br><br>xfs_repair <span class="hljs-regexp">/dev/m</span>apper/centos-root<br><br><span class="hljs-regexp">//</span> 上边修复不行的话，执行强制修复<br>xfs_repair -L <span class="hljs-regexp">/dev/m</span>apper/centos-root<br><br>reboot<br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Linux</tag>
+      
+      <tag>VmWare</tag>
+      
+      <tag>虚拟机</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>常用书签页</title>
+    <link href="/2023/01/14/2023-01-14-%E5%B8%B8%E7%94%A8%E4%B9%A6%E7%AD%BE%E9%A1%B5/"/>
+    <url>/2023/01/14/2023-01-14-%E5%B8%B8%E7%94%A8%E4%B9%A6%E7%AD%BE%E9%A1%B5/</url>
+    
+    <content type="html"><![CDATA[<p><a href="https://www.tw.3822808.com/zh-hans/Wikipedia:%E9%A6%96%E9%A1%B5">中文维基百科【维基百科中文版网站】</a></p><p><a href="https://www.wikipedia.org/">Wikipedia</a></p><p><a href="https://www.office.com/?auth=2">Microsoft Office 主页</a></p><p><a href="http://47.107.37.120:8800/">麻将基本术语中英文对照表</a></p><p><a href="http://cxysite.com/">程序员导航</a></p><p><a href="https://my.oschina.net/u/4526289/blog/5464516">一文带你认识30个重要的数据结构和算法 - 华为云开发者社区的个人空间 - OSCHINA - 中文开源技术交流社区</a></p><p><a href="https://topgoer.com/">前景 · Go语言中文文档</a></p><p><a href="https://max.book118.com/html/2017/1029/138118387.shtm">棋牌赛制及积分规则.pptx</a></p><p><a href="https://docs.apachecn.org/">ApacheCN 文档汇总 | 让开源界提前感受入关</a></p><p><a href="https://gitmoji.dev/">gitmoji | An emoji guide for your commit messages</a></p><p><a href="https://qicoder.com/">豆萁程序猿</a></p><p><a href="http://useragent.kuzhazha.com/PC/">（PC UA）常用UserAgent列表</a></p><p><a href="https://www.volcengine.com/docs/6285/152564#_3-http-response-%E6%A0%BC%E5%BC%8F">火山引擎-增长分析</a></p><p><a href="https://github.com/bannedbook/fanqiang/wiki">科学上网</a></p><h1 id="2026-03-11"><a href="#2026-03-11" class="headerlink" title="2026.03.11"></a>2026.03.11</h1><p>新增标签页</p><p><a href="https://www.linuxcool.com/">Linux命令大全(手册) – 真正好用的Linux命令在线查询网站</a></p><p><a href="https://gorm.io/zh_CN/docs/index.html">GORM 指南 | GORM - The fantastic ORM library for Golang, aims to be developer friendly.</a></p><p><a href="https://tableconvert.com/zh-cn/excel-to-csv">在线 Excel 转 CSV - 表格转换工具</a></p><p><a href="https://www.sojson.com/yasuo.html">JSON压缩转义工具，JSON转义，JSON压缩一行</a></p><p><a href="https://gin-gonic.com/zh-cn/">Gin Web Framework | Gin Web Framework</a></p><p><a href="https://www.oryoy.com/news/windows-qing-song-shang-shou-socat-yi-jian-an-zhuang-kua-ping-tai-wen-jian-chuan-shu-bu-qiu-ren.html">Windows轻松上手socat：一键安装，跨平台文件传输不求人 - 云原生实践</a></p><p><a href="https://zaiwen.xueban.org.cn/">在问 | 让知识无界,智能触手可及</a></p><p><a href="http://172.16.3.191:8080/etcdkeeper/">ETCD Keeper</a></p><p><a href="https://sa-token.cc/doc.html#/">sa-token</a></p><p><a href="https://developer.aliyun.com/article/1674038">使用Nginx配置反向代理并实现负载均衡-开发者社区-阿里云</a></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>书签【书签页记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>书签页</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>数据流图</title>
+    <link href="/2022/10/13/2022-10-13-%E6%95%B0%E6%8D%AE%E6%B5%81%E5%9B%BE/"/>
+    <url>/2022/10/13/2022-10-13-%E6%95%B0%E6%8D%AE%E6%B5%81%E5%9B%BE/</url>
+    
+    <content type="html"><![CDATA[<h3 id="内容提要"><a href="#内容提要" class="headerlink" title="内容提要"></a>内容提要</h3><ul><li>数据流图基本概念</li><li>数据字典</li><li>数据平衡原则</li></ul><h3 id="数据流图基本概念"><a href="#数据流图基本概念" class="headerlink" title="数据流图基本概念"></a>数据流图基本概念</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-13_16-34-44.png" alt="Snipaste_2022-10-13_16-34-44.png"></p><p>数据流图自顶向下扩散而来。</p><h3 id="数据字典"><a href="#数据字典" class="headerlink" title="数据字典"></a>数据字典</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-13_16-43-16.png" alt="Snipaste_2022-10-13_16-43-16.png"></p><h3 id="数据流图平衡原则"><a href="#数据流图平衡原则" class="headerlink" title="数据流图平衡原则"></a>数据流图平衡原则</h3><ul><li>父图与子图之间的平衡</li><li>子图内平衡<ul><li>只有输入没有输出 黑洞</li><li>只有输出没有输入 奇迹</li></ul></li></ul><p>顶层图</p><p>0层图</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>数据流图(DFD)</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>发送邮件</title>
+    <link href="/2022/10/12/2022-10-12-%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6/"/>
+    <url>/2022/10/12/2022-10-12-%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6/</url>
+    
+    <content type="html"><![CDATA[<h3 id="使用Go三方库来发送邮件"><a href="#使用Go三方库来发送邮件" class="headerlink" title="使用Go三方库来发送邮件"></a>使用Go三方库来发送邮件</h3><ul><li><a href="https://gopkg.in/gomail.v2">gopkg.in/gomail.v2</a></li><li><a href="https://github.com/jordan-wright/email">github.com/jordan-wright/email</a></li></ul><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs stylus">e := email<span class="hljs-selector-class">.NewEmail</span>()<br>e<span class="hljs-selector-class">.From</span> = <span class="hljs-string">&quot;Jordan Wright &lt;test@gmail.com&gt;&quot;</span><br>e<span class="hljs-selector-class">.To</span> = <span class="hljs-selector-attr">[]</span>string&#123;<span class="hljs-string">&quot;test@example.com&quot;</span>&#125;<br>e<span class="hljs-selector-class">.Bcc</span> = <span class="hljs-selector-attr">[]</span>string&#123;<span class="hljs-string">&quot;test_bcc@example.com&quot;</span>&#125;<br>e<span class="hljs-selector-class">.Cc</span> = <span class="hljs-selector-attr">[]</span>string&#123;<span class="hljs-string">&quot;test_cc@example.com&quot;</span>&#125;<br>e<span class="hljs-selector-class">.Subject</span> = <span class="hljs-string">&quot;Awesome Subject&quot;</span><br>e<span class="hljs-selector-class">.Text</span> = <span class="hljs-selector-attr">[]</span><span class="hljs-built_in">byte</span>(<span class="hljs-string">&quot;Text Body is, of course, supported!&quot;</span>)<br>e<span class="hljs-selector-class">.HTML</span> = <span class="hljs-selector-attr">[]</span><span class="hljs-built_in">byte</span>(<span class="hljs-string">&quot;&lt;h1&gt;Fancy HTML is supported, too!&lt;/h1&gt;&quot;</span>)<br>e<span class="hljs-selector-class">.Send</span>(<span class="hljs-string">&quot;smtp.gmail.com:587&quot;</span>, smtp<span class="hljs-selector-class">.PlainAuth</span>(<span class="hljs-string">&quot;&quot;</span>, <span class="hljs-string">&quot;test@gmail.com&quot;</span>, <span class="hljs-string">&quot;password123&quot;</span>, <span class="hljs-string">&quot;smtp.gmail.com&quot;</span>))<br></code></pre></td></tr></table></figure><p>参数解释：</p><ul><li>From：发件人</li><li>To：收件人（可以是多个）</li><li>Bcc：密件抄送</li><li>Cc：抄送</li><li>Subject：主题</li><li>Text：正文</li><li>HTML：Html格式</li></ul><p>方法：</p><ul><li><p>Send：发送邮件</p><p>smtp.gmail.com:587：</p><p>smtp.gmail.com服务器地址，587服务器端口<br>password123：发件邮件账号的三方授权密码</p></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>GO</tag>
+      
+      <tag>gomail</tag>
+      
+      <tag>email</tag>
+      
+      <tag>邮件</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>面向对象设计</title>
+    <link href="/2022/10/11/2022-10-11-%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1/"/>
+    <url>/2022/10/11/2022-10-11-%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1/</url>
+    
+    <content type="html"><![CDATA[<h3 id="需求开发-需求分析-OOA-相关概念"><a href="#需求开发-需求分析-OOA-相关概念" class="headerlink" title="需求开发-需求分析-OOA-相关概念"></a>需求开发-需求分析-OOA-相关概念</h3><ul><li>对象（实体类、边界类、控制类）</li><li>类</li><li>抽象</li><li>封装</li><li>继承与泛化</li><li>多态</li><li>接口</li><li>消息</li><li>组件</li><li>模式和复用</li></ul><h3 id="面向对象设计-设计原则"><a href="#面向对象设计-设计原则" class="headerlink" title="面向对象设计-设计原则"></a>面向对象设计-设计原则</h3><ul><li>单一职责原则：设计目的单一的类</li><li>开放-封闭原则：对拓展开放，对修改封闭</li><li>里氏换元：子类可以替换父类</li><li>依赖倒置原则：要依赖抽象，而不是具体实现；针对接口编程，不要针对实现编程</li><li>接口隔离原则：使用多个专门的接口比使用单一的总接口要好</li><li>组合重用原则：要尽量使用组合，而不是继承关系达到重用目的</li><li>迪米特原则（最少知识法则）：一个对象应当对其他对象有尽可能少的了解</li></ul><h3 id="需求开发-需求分析-OOA-UML"><a href="#需求开发-需求分析-OOA-UML" class="headerlink" title="需求开发-需求分析-OOA-UML"></a>需求开发-需求分析-OOA-UML</h3><p>结构（静态图）：</p><ul><li>类图</li><li>对象图</li><li>包图</li><li>组合结构图</li><li>构件图</li><li>部署图</li><li>制品图</li></ul><p>行为（动态图）：</p><ul><li>用例图（用例）</li><li>顺序图、序列图</li><li>通信图、协作图</li><li>定时图</li><li>状态图</li><li>活动图</li><li>交互概览图</li></ul><h3 id="面向对象设计-设计模式的概念"><a href="#面向对象设计-设计模式的概念" class="headerlink" title="面向对象设计-设计模式的概念"></a>面向对象设计-设计模式的概念</h3><p>架构模式：软件设计中的高层决策，例如C/S结构就属于架构模式，架构模式反映了开发软件系统过程中所做的基本设计决策</p><p>设计模式：主要关注软件系统的设计，与具体的实现语言无关</p><p>惯用法：是最低层的模式，语言相关</p><h3 id="面向对象设计-设计模式的分类"><a href="#面向对象设计-设计模式的分类" class="headerlink" title="面向对象设计-设计模式的分类"></a>面向对象设计-设计模式的分类</h3><ul><li><p>创建型模式</p><ul><li>工厂方法</li><li>抽象工厂</li><li>原型模式</li><li>单例模式</li><li>构建器模式</li></ul></li><li><p>结构性模式</p><ul><li>适配器模式</li><li>桥接模式</li><li>组合模式</li><li>装饰模式</li><li>外观模式</li><li>享元模式</li><li>代理模式</li></ul></li><li><p>行为型模式</p><ul><li><p>职责链模式</p></li><li><p>命令模式</p></li><li><p>解释器模式</p></li><li><p>迭代器模式</p></li><li><p>中介者模式</p></li><li><p>备忘录模式</p></li><li><p>观察者模式</p></li><li><p>状态模式</p></li><li><p>策略模式</p></li><li><p>模板方法模式</p></li><li><p>访问者模式</p></li></ul></li></ul><h3 id="面向对象设计-创建型模式"><a href="#面向对象设计-创建型模式" class="headerlink" title="面向对象设计-创建型模式"></a>面向对象设计-创建型模式</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-11_15-26-27.png" alt="Snipaste_2022-10-11_15-26-27.png"></p><h3 id="面向对象设计-结构型模式"><a href="#面向对象设计-结构型模式" class="headerlink" title="面向对象设计-结构型模式"></a>面向对象设计-结构型模式</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-11_15-30-11.png" alt="Snipaste_2022-10-11_15-30-11.png"></p><h3 id="面向对象设计-行为型模式"><a href="#面向对象设计-行为型模式" class="headerlink" title="面向对象设计-行为型模式"></a>面向对象设计-行为型模式</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-11_15-39-32.png" alt="Snipaste_2022-10-11_15-39-32.png"></p><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-11_15-44-54.png" alt="Snipaste_2022-10-11_15-44-54.png"></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>面向对象设计</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>系统开发基础</title>
+    <link href="/2022/10/11/2022-10-11-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80/"/>
+    <url>/2022/10/11/2022-10-11-%E7%B3%BB%E7%BB%9F%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80/</url>
+    
+    <content type="html"><![CDATA[<h3 id="项目管理"><a href="#项目管理" class="headerlink" title="项目管理"></a>项目管理</h3><p>Gantt图：</p><p>缺点：不能清晰地描述各任务之间的依赖关系</p><p>风险管理：</p><p>风险是指“损失或伤害的可能性”</p><p>项目风险    关心未来</p><p>技术风险    关心变化</p><p>商业风险    关心选择</p><p>风险曝光度：计算方法时风险出现的概率乘以风险可能造成的损失</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>系统开发基础</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>软件能力成熟度模型</title>
+    <link href="/2022/10/11/2022-10-11-%E8%BD%AF%E4%BB%B6%E8%83%BD%E5%8A%9B%E6%88%90%E7%86%9F%E5%BA%A6%E6%A8%A1%E5%9E%8B/"/>
+    <url>/2022/10/11/2022-10-11-%E8%BD%AF%E4%BB%B6%E8%83%BD%E5%8A%9B%E6%88%90%E7%86%9F%E5%BA%A6%E6%A8%A1%E5%9E%8B/</url>
+    
+    <content type="html"><![CDATA[<h3 id="软件过程改进-CMMI"><a href="#软件过程改进-CMMI" class="headerlink" title="软件过程改进-CMMI"></a>软件过程改进-CMMI</h3><ul><li>阶段式-组织能力成熟度<ul><li>混乱级</li><li>已管理级：项目需求管理，项目计划，配置管理，项目监督与控制</li><li>已定义级：文档化、标准化</li><li>定量管理级：组织过程性能、定量项目管理</li><li>优化级：组织级改革与实施、因果分析和解决方案</li></ul></li><li>连续式-软件过程能力<ul><li>过程管理</li><li>项目管理</li><li>工程</li><li>支持</li></ul></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>软件能力成熟度模型</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>GOSERVER.V3源码</title>
+    <link href="/2022/10/11/2022-10-11-GOSERVER.V3%E6%BA%90%E7%A0%81/"/>
+    <url>/2022/10/11/2022-10-11-GOSERVER.V3%E6%BA%90%E7%A0%81/</url>
+    
+    <content type="html"><![CDATA[<p>## goserver</p><p>goserver 旨在做一个传统的CS结构的服务器框架</p><p>目前主要用于游戏服务器开发</p><p>框架还在不断努力完善中，如果你对它感兴趣，请关注它的动态或者参与进来</p><p>## Features</p><p>* 组件通过package的概念统一管理(可以理解为win32下的dll)，由config来配置各个组件的特性参数</p><p>* goroutine通过Object进行包装以树型结构组织，Object间的通信通过command(内部是chan),主要是为了预防chan滥用、失控，从而造成各种死锁问题</p><p>* 提供了时间，任务，事务，计划工作，网络通讯，模块管理的内置组件</p><p>* 提供一套传统的游戏服务器架构(制作中…)</p><p>## 模块说明</p><p>* +core 核心模块</p><p>  * admin : http管理接口，主要提供一种外部可以操控进程的可能</p><p>  * basic : 基础的线程对象，封装对象间内部通讯；避免chan环锁现象，树形管理object</p><p>  * bulletin: 框架内建元素，提供通讯层的一些基础过滤器和通讯协议</p><p>  * cmdline: 自建命令行，给控制台进程提供一种命令模式</p><p>  * container: 框架用到的一些容器，队列，回收器，线程安全list，线程安全map</p><p>  * i18n: 国际化配置</p><p>  * logger: 日志接口</p><p>  * module: 业务模块管理，提供统一的心跳管理，模块通过注册挂载到管理器</p><p>  * mongo: mogodb相关配置</p><p>  * netlib: 通讯模块，支持TCP和WebSocket两种通讯方式</p><p>  * profile: 性能统计相关，用于辅助查找性能热点</p><p>  * schedule: 定时任务调度模块，用于周期job处理，如：每日凌晨4：00进行日志清理</p><p>  * signal: 信号管理模块,hook操作系统的信号进行回调处理，如：kill -2 PID</p><p>  * task: 线程模块，提供线程池、实名线程和独立线程多种模式</p><p>  * timer: 定时器，有别于go内置的timer；主要用于确保线程安全问题</p><p>  * transact: 分布式事务，基于二段提交实现，协调多节点配合完成一件原子性操作</p><p>  * utils: 工具接口</p><p>  * zk: zookeeper接口，用于分布式协调</p><p>* +srvlib core/netlib的扩展封装，提供常用的客户端session和服务端service管理，以及服务发现；进一步封装，使框架层达到拆箱即用</p><p>  * action 内置常用的包重定向和中转操作</p><p>  * handler 提供基本的session和service管理</p><p>  * protocol 内置协议定义</p><p>* +examples 示例程序</p><p>  * echoclient 回声客户端程序</p><p>  * echoserver 回声服务端程序</p><p>  * other timer和task使用示例</p><p>  * txserver1 分布式事务节点1</p><p>  * txserver2 分布式事务节点2</p><p>* +mmo 提供一套基本的服务器架构模板</p><h3 id="core核心包"><a href="#core核心包" class="headerlink" title="core核心包"></a>core核心包</h3><ul><li>admin:HTTP路由管理</li><li>cmdline:自建命令行，可自定义实现cmd命令功能</li><li>logger:seelog日志库封装</li><li></li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>工作【间歇性记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Go</tag>
+      
+      <tag>GOSERVER框架</tag>
+      
+      <tag>CS游戏架构</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>系统运行与维护</title>
+    <link href="/2022/10/08/2022-10-08-%E7%B3%BB%E7%BB%9F%E8%BF%90%E8%A1%8C%E4%B8%8E%E7%BB%B4%E6%8A%A4/"/>
+    <url>/2022/10/08/2022-10-08-%E7%B3%BB%E7%BB%9F%E8%BF%90%E8%A1%8C%E4%B8%8E%E7%BB%B4%E6%8A%A4/</url>
+    
+    <content type="html"><![CDATA[<h3 id="系统运行与维护"><a href="#系统运行与维护" class="headerlink" title="系统运行与维护"></a>系统运行与维护</h3><p>可维护性：</p><ol><li>易分析性</li><li>易改变性</li><li>稳定性</li><li>易测试性</li></ol><p>维护类型：</p><ol><li>改正性维护（25%）</li><li>适应性维护（20%）</li><li>完善性维护（50%）</li><li>预防性维护（5%）</li></ol>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>系统运行与维护</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>软件测试</title>
+    <link href="/2022/10/08/2022-10-08-%E8%BD%AF%E4%BB%B6%E6%B5%8B%E8%AF%95/"/>
+    <url>/2022/10/08/2022-10-08-%E8%BD%AF%E4%BB%B6%E6%B5%8B%E8%AF%95/</url>
+    
+    <content type="html"><![CDATA[<h3 id="软件测试-测试原型与类型"><a href="#软件测试-测试原型与类型" class="headerlink" title="软件测试-测试原型与类型"></a>软件测试-测试原型与类型</h3><ul><li>尽早、不断的进行测试</li><li>程序员避免测试自己设计的程序</li><li>既要选择有效、合理的数据，也要选择无效不合理的数据</li><li>修改后应进行回归测试</li><li>尚未发现的错误数量与该程序已发现错误数成正比</li></ul><p>测试类型：</p><ol><li>动态测试：黑盒、白盒、灰盒测试</li><li>静态测试：桌前检查、代码走查、代码审查</li></ol><h3 id="软件测试-测试用例设计"><a href="#软件测试-测试用例设计" class="headerlink" title="软件测试-测试用例设计"></a>软件测试-测试用例设计</h3><ol><li>黑盒测试<ol><li>等价类划分</li><li>边界值分析</li><li>错误推测</li><li>因果图</li></ol></li><li>白盒测试<ol><li>基本路径测试</li><li>循环覆盖测试</li><li>逻辑覆盖测试<ol><li>语句覆盖</li><li>判定覆盖</li><li>条件覆盖</li><li>条件判定覆盖</li><li>路径覆盖</li><li>…</li></ol></li></ol></li></ol><h3 id="软件测试-测试阶段"><a href="#软件测试-测试阶段" class="headerlink" title="软件测试-测试阶段"></a>软件测试-测试阶段</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-08_16-55-42.png" alt="Snipaste_2022-10-08_16-55-42.png"></p><h3 id="软件测试-McCabe复杂度"><a href="#软件测试-McCabe复杂度" class="headerlink" title="软件测试-McCabe复杂度"></a>软件测试-McCabe复杂度</h3><p>计算有向图G的环路复杂度公式为：V(G)=M-N+2</p><p>说明：其中V(G)是有向图G中的环路个数，m是G中的有向弧数，n是G中的节点数。</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>软件测试</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>系统设计</title>
+    <link href="/2022/10/08/2022-10-08-%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/"/>
+    <url>/2022/10/08/2022-10-08-%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/</url>
+    
+    <content type="html"><![CDATA[<h3 id="结构化设计-基本原则"><a href="#结构化设计-基本原则" class="headerlink" title="结构化设计-基本原则"></a>结构化设计-基本原则</h3><ul><li>概要设计</li><li>详细设计</li></ul><p>高内聚、低耦合（模块独立）</p><p>自顶向下、逐步求精</p><p>信息隐蔽</p><h3 id="内聚和耦合"><a href="#内聚和耦合" class="headerlink" title="内聚和耦合"></a>内聚和耦合</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-08_16-34-48.png" alt="Snipaste_2022-10-08_16-34-48.png"></p><h3 id="系统结构、模块结构"><a href="#系统结构、模块结构" class="headerlink" title="系统结构、模块结构"></a>系统结构、模块结构</h3><ul><li>传入型</li><li>传出型</li><li>变换型</li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>需求分类与需求获取</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>需求工程</title>
+    <link href="/2022/10/08/2022-10-08-%E9%9C%80%E6%B1%82%E5%B7%A5%E7%A8%8B/"/>
+    <url>/2022/10/08/2022-10-08-%E9%9C%80%E6%B1%82%E5%B7%A5%E7%A8%8B/</url>
+    
+    <content type="html"><![CDATA[<h3 id="需求开发-需求分类与需求获取"><a href="#需求开发-需求分类与需求获取" class="headerlink" title="需求开发-需求分类与需求获取"></a>需求开发-需求分类与需求获取</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-08_16-20-59.png" alt="Snipaste_2022-10-08_16-20-59.png"></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>需求分类与需求获取</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>软件工程</title>
+    <link href="/2022/10/08/2022-10-08-%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/"/>
+    <url>/2022/10/08/2022-10-08-%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/</url>
+    
+    <content type="html"><![CDATA[<h3 id="软件开发模型"><a href="#软件开发模型" class="headerlink" title="软件开发模型"></a>软件开发模型</h3><ol><li><p>瀑布模型</p><ul><li>软件计划</li><li>需求分析</li><li>软件设计</li><li>程序编码</li><li>软件测试</li><li>运行维护</li></ul><p>缺点：需求阶段难以把控。</p></li><li><p>其他经典模型</p></li></ol><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-08_14-42-59.png" alt="Snipaste_2022-10-08_14-42-59.png"></p><ul><li>原型：确定产品的界面按钮及功能（简易系统）</li></ul><ol start="3"><li><p>螺旋模型</p><p>风险分析：评价方案、识别风险、消除风险。</p><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-08_14-51-57.png" alt="Snipaste_2022-10-08_14-51-57.png"></p></li><li><p>V模型:强调测试（测试贯穿开发的始终）</p></li></ol><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-08_14-52-58.png" alt="Snipaste_2022-10-08_14-52-58.png"></p><ol start="5"><li>构件组装模型（CBSD）</li></ol><ul><li>需求分析和定义</li><li>软件架构设计</li><li>构件库的建立</li><li>应用软件构建</li><li>测试和发布</li></ul><ol start="6"><li>统一过程</li></ol><p>特点：</p><ul><li>用例驱动</li><li>以架构为中心</li><li>迭代与增量</li></ul><p>阶段：</p><ul><li>建立构建架构基础</li><li>构建组装与测试</li><li>进行测试交付</li></ul><ol start="7"><li>敏捷开发方法</li></ol><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-10-08_16-02-56.png" alt="Snipaste_2022-10-08_16-02-56.png"></p><ol start="8"><li>信息系统开发方法<ul><li>结构化法</li><li>原型法：适用于需求不明确的开发</li><li>面向对象方法</li><li>面向服务方法</li></ul></li></ol>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>开发模型与方法</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>情绪</title>
+    <link href="/2022/09/28/2022-09-28-%E6%83%85%E7%BB%AA/"/>
+    <url>/2022/09/28/2022-09-28-%E6%83%85%E7%BB%AA/</url>
+    
+    <content type="html"><![CDATA[<p>之前听过的歌曲，只不过今天看了一眼歌词。。。</p><p><a href="https://music.163.com/#/song?id=475479888&market=baiduqk">在你的身边</a></p><p>没想到情绪会瞬间崩溃，</p><p>瞬间才感觉原来情绪有时候是控制不住的，</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>生活【奇奇怪怪的想法，随手一记】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>音乐</tag>
+      
+      <tag>情绪</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>多媒体基础</title>
+    <link href="/2022/09/23/2022-09-23-%E5%A4%9A%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/"/>
+    <url>/2022/09/23/2022-09-23-%E5%A4%9A%E5%AA%92%E4%BD%93%E5%9F%BA%E7%A1%80/</url>
+    
+    <content type="html"><![CDATA[<h3 id="多媒体基础"><a href="#多媒体基础" class="headerlink" title="多媒体基础"></a>多媒体基础</h3><h4 id="课程内容提要"><a href="#课程内容提要" class="headerlink" title="课程内容提要"></a>课程内容提要</h4><ul><li>多媒体技术基本概念</li><li>多媒体相关计算问题</li><li>常见多媒体标准</li><li>数据压缩技术</li></ul><h4 id="多媒体技术基本概念-音频"><a href="#多媒体技术基本概念-音频" class="headerlink" title="多媒体技术基本概念-音频"></a>多媒体技术基本概念-音频</h4><ul><li>声音的带宽（人耳20HZ-30KHZ，大于20kHz的是超声波）</li><li>采样：<ul><li>采样频度（采样频率应为声音最高频率2倍）</li><li>采样精度</li></ul></li></ul><h4 id="多媒体技术基本概念-图像"><a href="#多媒体技术基本概念-图像" class="headerlink" title="多媒体技术基本概念-图像"></a>多媒体技术基本概念-图像</h4><ul><li>亮度</li><li>色调</li><li>饱和度</li><li>彩色空间：RGB、YUV（电视黑白和彩色兼容）</li></ul><h4 id="多媒体技术基本概念-媒体"><a href="#多媒体技术基本概念-媒体" class="headerlink" title="多媒体技术基本概念-媒体"></a>多媒体技术基本概念-媒体</h4><ul><li>感觉媒体</li><li>表示媒体</li><li><font color=red>显示媒体（表现媒体）</font>：表现和获取信息的物理设备（输入、输出设备）</li><li>存储媒体</li><li>传输媒体</li></ul><h4 id="多媒体相关计算"><a href="#多媒体相关计算" class="headerlink" title="多媒体相关计算"></a>多媒体相关计算</h4><ol><li><p>图像容量计算</p><ol><li>位数</li><li>色数</li></ol></li><li><p>音频容量计算</p><p>容量 = 采样频率 X 量化/CIA杨位数 X 声道数 / 8</p></li><li><p>视频容量计算</p><p>容量 = 每帧图像容量 X 每秒帧数 X 时间 + 音频容量 X 时间</p></li></ol><h4 id="常见多媒体标准"><a href="#常见多媒体标准" class="headerlink" title="常见多媒体标准"></a>常见多媒体标准</h4><ul><li>JPEG：有损，离散余弦</li><li>JPEG-2000：有损&amp;无损、压缩比更高、医学图像应用</li><li>MPEG-1：MP3</li><li>MPEG-2：DVD</li><li>MPEG-4：增强交互性，无线通信，网络电话</li><li>MPEG-7:多媒体接口</li><li>MPEG-21：标准集成</li></ul><h4 id="数据压缩"><a href="#数据压缩" class="headerlink" title="数据压缩"></a>数据压缩</h4><ul><li>空间冗余（几何冗余）</li><li>时间冗余</li><li>视觉冗余</li><li>信息熵冗余</li><li>结构冗余</li><li>知识冗余</li></ul><h4 id="有损压缩与无损压缩"><a href="#有损压缩与无损压缩" class="headerlink" title="有损压缩与无损压缩"></a>有损压缩与无损压缩</h4><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-09-23_17-46-34.png" alt="Snipaste_2022-09-23_17-46-34.png"></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>多媒体</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Linux系统使用静态IP</title>
+    <link href="/2022/09/23/2022-09-23-Linux%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8%E9%9D%99%E6%80%81IP/"/>
+    <url>/2022/09/23/2022-09-23-Linux%E7%B3%BB%E7%BB%9F%E4%BD%BF%E7%94%A8%E9%9D%99%E6%80%81IP/</url>
+    
+    <content type="html"><![CDATA[<ol><li><p>使用命令行，进入 <code>/etc/sysconfig/network-scripts/</code>目录下；</p></li><li><p>修改ifcfg-ens33或者是ifcfg-eth0（一般为：ifcfg-*）文件：</p><p><code>vim ifcfg-ens33</code></p><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">TYPE</span>=<span class="hljs-string">&quot;Ethernet&quot;</span><br><span class="hljs-attr">PROXY_METHOD</span>=<span class="hljs-string">&quot;none&quot;</span><br><span class="hljs-attr">BROWSER_ONLY</span>=<span class="hljs-string">&quot;no&quot;</span><br><span class="hljs-attr">BOOTPROTO</span>=<span class="hljs-string">&quot;static&quot;</span><br><span class="hljs-attr">IPADDR</span>=<span class="hljs-number">192.168</span>.<span class="hljs-number">1.46</span><br><span class="hljs-attr">GATEWAY</span>=<span class="hljs-number">192.168</span>.<span class="hljs-number">1.1</span><br><span class="hljs-attr">NETMASK</span>=<span class="hljs-number">255.255</span>.<span class="hljs-number">255.0</span><br><span class="hljs-attr">DNS1</span>=<span class="hljs-number">8.8</span>.<span class="hljs-number">8.8</span><br><span class="hljs-attr">DNS2</span>=<span class="hljs-number">114.114</span>.<span class="hljs-number">114.114</span><br><span class="hljs-attr">DEFROUTE</span>=<span class="hljs-string">&quot;yes&quot;</span><br><span class="hljs-attr">IPV4_FAILURE_FATAL</span>=<span class="hljs-string">&quot;no&quot;</span><br><span class="hljs-attr">IPV6INIT</span>=<span class="hljs-string">&quot;yes&quot;</span><br><span class="hljs-attr">IPV6_AUTOCONF</span>=<span class="hljs-string">&quot;yes&quot;</span><br><span class="hljs-attr">IPV6_DEFROUTE</span>=<span class="hljs-string">&quot;yes&quot;</span><br><span class="hljs-attr">IPV6_FAILURE_FATAL</span>=<span class="hljs-string">&quot;no&quot;</span><br><span class="hljs-attr">IPV6_ADDR_GEN_MODE</span>=<span class="hljs-string">&quot;stable-privacy&quot;</span><br><span class="hljs-attr">NAME</span>=<span class="hljs-string">&quot;ens33&quot;</span><br><span class="hljs-attr">UUID</span>=<span class="hljs-string">&quot;d4c9b51e-f847-477c-967f-bf7e92802e0a&quot;</span><br><span class="hljs-attr">DEVICE</span>=<span class="hljs-string">&quot;ens33&quot;</span><br><span class="hljs-attr">ONBOOT</span>=<span class="hljs-string">&quot;yes&quot;</span><br></code></pre></td></tr></table></figure><ul><li>BOOTPROTO：”dhcp”动态ip，”static”静态ip<br>IPADDR：ip地址<br>GATEWAY：网关<br>NETMASK：子网掩码<br>DNS1：dns地址</li></ul></li><li><p>添加dns服务器</p><ol><li><code>vim /etc/resolv.conf</code> 写入dns地址 nameserver 8.8.8.8</li><li>保存退出，重启服务器。验证网络是否正常</li></ol></li></ol>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Linux</tag>
+      
+      <tag>VmWare</tag>
+      
+      <tag>静态IP</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>VmWare断电后XFS(sda3):Corruption of in-memory data detected</title>
+    <link href="/2022/09/23/2022-09-23-VmWare%E6%96%AD%E7%94%B5%E5%90%8EXFS(sda3)Corruption-of-in-memory-data-detected/"/>
+    <url>/2022/09/23/2022-09-23-VmWare%E6%96%AD%E7%94%B5%E5%90%8EXFS(sda3)Corruption-of-in-memory-data-detected/</url>
+    
+    <content type="html"><![CDATA[<p>问题：VmWare断电后XFS(sda3):Corruption of in-memory data detected</p><p>原因：sda3内存数据损坏，需要进行磁盘修复操作</p><p>解决办法：</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs awk">umount <span class="hljs-regexp">/dev/</span>sda3<br>xfs_repair -v -L <span class="hljs-regexp">/dev/</span>sda3<br>reboot<br></code></pre></td></tr></table></figure><p>以上内容参考：<a href="https://blog.csdn.net/s19980228/article/details/107160008">虚拟机断电后centos7无法正常启动 XFS(sda3):Corruption of in-memory data detected</a></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>VmWare</tag>
+      
+      <tag>虚拟机</tag>
+      
+      <tag>系统报错</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>标准化</title>
+    <link href="/2022/09/22/2022-09-22-%E6%A0%87%E5%87%86%E5%8C%96/"/>
+    <url>/2022/09/22/2022-09-22-%E6%A0%87%E5%87%86%E5%8C%96/</url>
+    
+    <content type="html"><![CDATA[<h3 id="标准化基础知识-标准的分类"><a href="#标准化基础知识-标准的分类" class="headerlink" title="标准化基础知识-标准的分类"></a>标准化基础知识-标准的分类</h3><ul><li>国际标准</li><li>国家标准：GB-中国、ANSI-美国、BS-英国、JSI-日本</li><li>区域标准</li><li>行业标准：GJB-中国军用标准、MIT-S-美国军用标准、IEEE-美国电气电子工程师协会</li><li>地方标准：国家的地方一级行政行政机构制定的标准</li><li>企业标准</li><li>项目规范：</li></ul><h3 id="标准化基础知识-标准的编号"><a href="#标准化基础知识-标准的编号" class="headerlink" title="标准化基础知识-标准的编号"></a>标准化基础知识-标准的编号</h3><ul><li>国际、国外标准代号：标准代号+专业类号+顺序号+年代号</li><li>我国国家标准代号：强制性标准代号为GB、推荐性标准代号为GB/T、指导性标准代号为GB/Z、实物标准代号GSB</li><li>行业标准代号：由汉语拼音大写字母组成（电子行业SJ）</li><li>地方标准代号：由DB加上升级行政区划代码的前两位</li><li>企业标准代号：由Q加上企业代号组成</li></ul>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>标准化</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>法律法规</title>
+    <link href="/2022/09/22/2022-09-22-%E6%B3%95%E5%BE%8B%E6%B3%95%E8%A7%84/"/>
+    <url>/2022/09/22/2022-09-22-%E6%B3%95%E5%BE%8B%E6%B3%95%E8%A7%84/</url>
+    
+    <content type="html"><![CDATA[<h3 id="法律法规-内容提要"><a href="#法律法规-内容提要" class="headerlink" title="法律法规-内容提要"></a>法律法规-内容提要</h3><h4 id="从所涉及的法律法规角度"><a href="#从所涉及的法律法规角度" class="headerlink" title="从所涉及的法律法规角度"></a>从所涉及的法律法规角度</h4><ul><li>著作权法</li><li>计算机软件保护条例</li><li>商标法</li><li>专利法</li></ul><h4 id="从试题考点分布的角度"><a href="#从试题考点分布的角度" class="headerlink" title="从试题考点分布的角度"></a>从试题考点分布的角度</h4><ul><li>保护期限</li><li>知识产权人确定</li><li>侵权判断</li></ul><h4 id="知识产权"><a href="#知识产权" class="headerlink" title="知识产权"></a>知识产权</h4><ul><li>著作权及邻接权（保护作者意外与之相关的）</li><li>专利权</li><li>工业品外观设计圈</li><li>商标权</li><li>地理标志权</li><li>集成电路布图设计权</li></ul><h3 id="法律法规-保护期限"><a href="#法律法规-保护期限" class="headerlink" title="法律法规-保护期限"></a>法律法规-保护期限</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-09-22_16-49-04.png" alt="Snipaste_2022-09-22_16-49-04.png"></p><h3 id="法律法规-知识产权人确定"><a href="#法律法规-知识产权人确定" class="headerlink" title="法律法规-知识产权人确定"></a>法律法规-知识产权人确定</h3><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-09-22_16-56-54.png" alt="Snipaste_2022-09-22_16-56-54.png"></p><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-09-22_17-03-24.png" alt="Snipaste_2022-09-22_17-03-24.png"></p><h3 id="侵权判定"><a href="#侵权判定" class="headerlink" title="侵权判定"></a>侵权判定</h3><ul><li>中国公民、法人或者其他组织的作品，不论是否发表，都享有著作权。</li><li>开发软件所用的思想、处理过程、操作方法或者数学概念不受保护。</li><li>著作权不适用于下列情形：<ul><li>法律、法规，国家机关的决议、决定、命令和请他具有立法、行政、司法性质的文件，及其官方正式译文；</li><li>时事新闻；</li><li>历法、通用数表、通用表格和公司。</li></ul></li></ul><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-09-22_17-16-03.png" alt="Snipaste_2022-09-22_17-16-03.png"></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>法律</tag>
+      
+      <tag>软著</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>软件设计语言与语言处理程序基础</title>
+    <link href="/2022/09/21/2022-09-21-%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E7%A8%8B%E5%BA%8F%E5%9F%BA%E7%A1%80/"/>
+    <url>/2022/09/21/2022-09-21-%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E8%AF%AD%E8%A8%80%E4%B8%8E%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86%E7%A8%8B%E5%BA%8F%E5%9F%BA%E7%A1%80/</url>
+    
+    <content type="html"><![CDATA[<h3 id="内容提要"><a href="#内容提要" class="headerlink" title="内容提要"></a>内容提要</h3><ul><li>编译与解释</li><li>文法</li><li><font color=red>正规式</font></li><li><font color=red>有限自动机</font></li><li>表达式</li><li>传值与传址</li><li>多种程序语言特点</li></ul><h3 id="编译过程"><a href="#编译过程" class="headerlink" title="编译过程"></a>编译过程</h3><p>​    解释型、编译型</p><ul><li>源程序</li><li>词法分析</li><li>语法分析</li><li>语义分析</li><li>中间代码生成</li><li>代码优化</li><li>目标代码生成</li><li>目标程序</li></ul><h3 id="文法定义"><a href="#文法定义" class="headerlink" title="文法定义"></a>文法定义</h3><ul><li>0型：短语文法</li><li>1型：上下文有关文法</li><li>2型：上下文无关文法</li><li>3型：正规文法</li></ul><h3 id="有限自动机"><a href="#有限自动机" class="headerlink" title="有限自动机"></a>有限自动机</h3><ul><li>有限状态自动机可以形象地用状态转换图表示</li></ul><h3 id="正规式"><a href="#正规式" class="headerlink" title="正规式"></a>正规式</h3><ul><li>有限自动机的而另一种表达形式</li></ul><h3 id="程序语言基础-表达式"><a href="#程序语言基础-表达式" class="headerlink" title="程序语言基础-表达式"></a>程序语言基础-表达式</h3><ul><li><p>前缀表达式</p></li><li><p>中缀表达式（一般表达式的形式）</p></li><li><p>后缀表达式</p><p>构建数按照前中后序遍历即可</p></li></ul><h3 id="函数调用-传值与传址"><a href="#函数调用-传值与传址" class="headerlink" title="函数调用-传值与传址"></a>函数调用-传值与传址</h3><ul><li>形参：函数声明时候的参数</li><li>实参：函数调用时候的参数</li></ul><h3 id="程序语言基础-多重程序语言特点"><a href="#程序语言基础-多重程序语言特点" class="headerlink" title="程序语言基础-多重程序语言特点"></a>程序语言基础-多重程序语言特点</h3><ol><li>Fortran语言（科学计算，执行效率高）</li><li>Pascal语言（为教学而开发的，表达能力强）</li><li>C语言（指针操作能力强，高效）</li><li>Lisp（函数式程序语言，符号处理，人工智能）</li><li>C++（面向对象，高效）</li><li>Java（面向对象，中间代码，跨平台）</li><li>C#（面向对象，中间代码，.NET）</li><li>Prolog语言（逻辑推理，简洁性，表达能力，数据库和专家系统）</li></ol>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>软件设计师【软考】</tag>
+      
+      <tag>程序设计语言</tag>
+      
+      <tag>语言处理程序</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>万物皆可交换</title>
+    <link href="/2022/09/18/2022-09-21-%E4%B8%87%E7%89%A9%E7%9A%86%E5%8F%AF%E4%BA%A4%E6%8D%A2/"/>
+    <url>/2022/09/18/2022-09-21-%E4%B8%87%E7%89%A9%E7%9A%86%E5%8F%AF%E4%BA%A4%E6%8D%A2/</url>
+    
+    <content type="html"><![CDATA[<h4 id="前提："><a href="#前提：" class="headerlink" title="前提："></a>前提：</h4><ul><li>周末</li><li>想去看二手车</li><li>公司开会待岗内容</li><li>刚起床</li></ul><h4 id="经过："><a href="#经过：" class="headerlink" title="经过："></a>经过：</h4><p>起床洗漱，热粥，准备吃过后出去溜达看车。</p><p>就给我的老爸打了个视频电话，简单的聊天后，想到公司近期开会相关调整，就想着给我爸稍微说一下这个情况。</p><p>因为，我首先说的都是不好的影响，然后我爸就单方面认为这样子我没法整，租房吃饭，根本不够我的开销。而我的想法是，这也不失为一件好事，待岗的话，可以出去走走，放松开心一下，换个心情也挺好（因为近两年，我好像内心都不怎么开心）</p><p>老爸意思大概是这样的：毕业都这么久了，啥都没有，以后咋整。略微有点担忧，又有点恨铁不成刚的意思。咳~</p><p>我的意思大概是这样的：顺势而为，及时行乐，不强求任何东西。</p><h4 id="思考："><a href="#思考：" class="headerlink" title="思考："></a>思考：</h4><p>好多事情都可以用交换的概念来解释。</p><p>单方面是看到自己得到的薪资少了，而没有注意到自己不需要付出任何东西了。</p><p>薪资    付出的东西</p><p>本质就是交换，用时间、劳动来换取薪资。</p><p>进一步放大一点讲：婚姻也差不多是交换，用钱、车、房换取一个人而已。</p><p>小一点讲来说：吃饭也是一种交换，用时间，吃的行为来换取肚子不饿。</p><p>付出只要能和预期成一定比例，这个交换可以说就是有价值的。而并不一定是说一天读十本书的价值就要大于一天读一本书的价值，还需要看你付出和预期是否对等。</p><h4 id="结论："><a href="#结论：" class="headerlink" title="结论："></a>结论：</h4><p>万物皆可交换（有可能是个伪结论哦，毕竟仅代表个人短暂的一刻思考而已）</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>生活【奇奇怪怪的想法，随手一记】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>万物</tag>
+      
+      <tag>交换</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>数据结构与算法基础</title>
     <link href="/2022/09/15/2022-09-14-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80/"/>
     <url>/2022/09/15/2022-09-14-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80/</url>
     
-    <content type="html"><![CDATA[<h3 id="数据结构与算法基础"><a href="#数据结构与算法基础" class="headerlink" title="数据结构与算法基础"></a>数据结构与算法基础</h3><ul><li>数组与矩阵</li><li><font color=red>线性表（栈、队列）</font></li><li>广义表</li><li><font color=red>树和二叉树</font></li><li>图</li><li><font color=red>排序与查找</font></li><li><font color=red>算法基础及常见的算法</font></li></ul><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><ul><li>一维数组</li><li>二维数组：按行存储，按列存储</li><li>多维数组</li></ul><h3 id="稀疏矩阵"><a href="#稀疏矩阵" class="headerlink" title="稀疏矩阵"></a>稀疏矩阵</h3><ul><li>选择题，可使用代入法</li></ul><p><img src="https://github.com/xinyi-jin/xinyi-jin.github.io/tree/main/img/%E8%BD%AF%E8%80%83/image-20220915115820786.png"></p><p><img src="/img/%E8%BD%AF%E8%80%83/image-20220915115820786.png" alt="image-20220915115820786"></p><h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3>]]></content>
+    <content type="html"><![CDATA[<h3 id="数据结构与算法基础"><a href="#数据结构与算法基础" class="headerlink" title="数据结构与算法基础"></a>数据结构与算法基础</h3><ul><li>数组与矩阵</li><li><font color=red>线性表（栈、队列）</font></li><li>广义表</li><li><font color=red>树和二叉树</font></li><li>图</li><li><font color=red>排序与查找</font></li><li><font color=red>算法基础及常见的算法</font></li></ul><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><ul><li>一维数组</li><li>二维数组：按行存储，按列存储</li><li>多维数组</li></ul><h3 id="稀疏矩阵"><a href="#稀疏矩阵" class="headerlink" title="稀疏矩阵"></a>稀疏矩阵</h3><ul><li>选择题，可使用代入法</li></ul><p><img src="/img/%E8%BD%AF%E8%80%83/image-20220915115820786.png" alt="image-20220915115820786"></p><h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><ol><li>数据结构的概念</li><li>数据逻辑结构<ul><li>线性结构（树、图）</li><li>非线性结构</li></ul></li></ol><h3 id="线性表-定义"><a href="#线性表-定义" class="headerlink" title="线性表-定义"></a>线性表-定义</h3><ul><li>顺序表（空间连续，一维数组）</li><li>链表（指针地址+数据，空间不连续）<ul><li>单链表 </li><li>循环链表</li><li>双向链表</li></ul></li><li>链表的操作<ul><li>插入</li><li>删除</li></ul></li></ul><h3 id="线性表-顺序存储与链式存储对比"><a href="#线性表-顺序存储与链式存储对比" class="headerlink" title="线性表-顺序存储与链式存储对比"></a>线性表-顺序存储与链式存储对比</h3><table><thead><tr><th>性能类别</th><th>具体项目</th><th>顺序存储</th><th>链式存储</th></tr></thead><tbody><tr><td>空间性能</td><td>存储密度</td><td>=1，更优</td><td>&lt;1</td></tr><tr><td></td><td>容量分配</td><td>事先确定</td><td>动态改变，更优</td></tr><tr><td></td><td></td><td></td><td></td></tr><tr><td>时间性能</td><td>查找运算</td><td>O(n/2)</td><td>O(n/2)</td></tr><tr><td></td><td>读运算</td><td>O(1)，更优</td><td>O([n+1]/2)，最好情况下为1，最坏为n</td></tr><tr><td></td><td>插入运算</td><td>O(n/2)，最好情况下为0，最坏为n</td><td>O(1)，更优</td></tr><tr><td></td><td>删除运算</td><td>O([n-1]/2)</td><td>O(1)，更优</td></tr></tbody></table><h3 id="线性表-队列与栈"><a href="#线性表-队列与栈" class="headerlink" title="线性表-队列与栈"></a>线性表-队列与栈</h3><ul><li><p>队列：FIFO先进先出</p></li><li><p>栈：LIFO先进后出</p></li><li><p>循环队列：</p><ul><li><p>队空条件：head=tail</p></li><li><p>队满条件：（tail+1）%size=head</p><p>一般少存储一位，取余判定</p></li></ul></li></ul><h3 id="广义表"><a href="#广义表" class="headerlink" title="广义表"></a>广义表</h3><p>定义：n个表元素组成的优先序列，是线性表的推广。</p><ul><li>表头head：表的首个元素</li><li>表尾tail：除表头外的其他所有元素</li><li>长度：表元素个数</li><li>深度：子表元素个数</li></ul><h3 id="树与二叉树"><a href="#树与二叉树" class="headerlink" title="树与二叉树"></a>树与二叉树</h3><ul><li>结点的度：孩子结点的个数</li><li>树的度：最高的结点的度</li><li>叶子结点</li><li>分支结点</li><li>内部结点</li><li>父结点</li><li>子结点</li><li>兄弟结点</li></ul><ol><li>满二叉树</li><li>完全二叉树</li><li>非完全二叉树</li></ol><p>二叉树的重要特性：</p><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-09-16_11-20-02.png" alt="Snipaste_2022-09-16_11-20-02.png"></p><h3 id="二叉树遍历"><a href="#二叉树遍历" class="headerlink" title="二叉树遍历"></a>二叉树遍历</h3><ul><li>前序遍历（根-左-右）</li><li>中序遍历（左-根-右）</li><li>后续遍历（左-右-根）</li><li>层次遍历</li></ul><h3 id="反向构造二叉树"><a href="#反向构造二叉树" class="headerlink" title="反向构造二叉树"></a>反向构造二叉树</h3><ul><li>由两种序列可以得到原二叉树</li></ul><h3 id="树转二叉树"><a href="#树转二叉树" class="headerlink" title="树转二叉树"></a>树转二叉树</h3><ul><li>多个兄弟结点，下方多余兄弟结点</li></ul><h3 id="查找二叉树（排序二叉树）"><a href="#查找二叉树（排序二叉树）" class="headerlink" title="查找二叉树（排序二叉树）"></a>查找二叉树（排序二叉树）</h3><ul><li>二叉排序树</li><li>左孩子小于根</li><li>右孩子大于根</li></ul><h3 id="最优二叉树（哈夫曼树）"><a href="#最优二叉树（哈夫曼树）" class="headerlink" title="最优二叉树（哈夫曼树）"></a>最优二叉树（哈夫曼树）</h3><ul><li>树的路径长度</li><li>权</li><li>带权路径长度</li><li>树的带权路径长度（树的代价）</li></ul><h3 id="线索二叉树"><a href="#线索二叉树" class="headerlink" title="线索二叉树"></a>线索二叉树</h3><ul><li><p>为什么要有线索二叉树？</p><p>因为二叉树部分节点为空，需要将这些空间利用起来。</p><p>基本就是前序、中序、后序遍历得来的。</p></li><li><p>前序线索二叉树</p></li><li><p>中序线索二叉树</p></li><li><p>后序线索二叉树</p></li></ul><h3 id="平衡二叉树"><a href="#平衡二叉树" class="headerlink" title="平衡二叉树"></a>平衡二叉树</h3><ul><li><p>平衡二叉树的提出原因</p><p>为了提高查询效率</p></li><li><p>平衡二叉树的定义</p><p>任何结点的左右子树深度相差不超过1</p><p>每结点的平衡度只能为-1、0或-1</p><h3 id="图-基本概念"><a href="#图-基本概念" class="headerlink" title="图-基本概念"></a>图-基本概念</h3></li><li><p>无向图：每对顶点之间都有一条线相连，完全图</p></li><li><p>有向图：没对顶点之间互连，完全图</p></li></ul><h3 id="图的存储-邻接矩阵"><a href="#图的存储-邻接矩阵" class="headerlink" title="图的存储-邻接矩阵"></a>图的存储-邻接矩阵</h3><ul><li>无向图：具有对称性，可只存上三角或者只存下三角</li></ul><h3 id="图的存储-邻接表"><a href="#图的存储-邻接表" class="headerlink" title="图的存储-邻接表"></a>图的存储-邻接表</h3><ul><li>首先把每个顶点的邻接顶点用链表示出来，然后用一个一维数组来顺序存储上面每个链表的头指针。</li></ul><h3 id="图的遍历"><a href="#图的遍历" class="headerlink" title="图的遍历"></a>图的遍历</h3><ul><li>深度优先：一条路走到底，然后再走另一条（递归/栈）</li><li>广度优先：逐个走每条路（队列）</li></ul><h3 id="图-拓扑排序"><a href="#图-拓扑排序" class="headerlink" title="图-拓扑排序"></a>图-拓扑排序</h3><ul><li>我们把用有向边表示活动之间开始的先后关系。这种有向图称为用顶点表示的活动网络，简称AOV网络。</li></ul><h3 id="图的最小生成树"><a href="#图的最小生成树" class="headerlink" title="图的最小生成树"></a>图的最小生成树</h3><ul><li>普里姆算法</li><li>克鲁斯卡尔算法</li></ul><h3 id="算法基础-算法的特性"><a href="#算法基础-算法的特性" class="headerlink" title="算法基础-算法的特性"></a>算法基础-算法的特性</h3><ul><li>有穷性</li><li>确定性</li><li>有效性</li></ul><h3 id="算法基础-算法的复杂度"><a href="#算法基础-算法的复杂度" class="headerlink" title="算法基础-算法的复杂度"></a>算法基础-算法的复杂度</h3><ul><li>时间复杂度<ul><li>O(1) &lt; O(log2n) &lt; O(n) &lt; O(N*log2n)  &lt; O(n的平方) &lt; O(n的3次方) &lt; O(2的n次方)</li></ul></li><li>空间复杂度</li></ul><h3 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h3><ul><li>顺序查找：<ul><li>时间复杂度：O(n)</li><li>将待查找的关键字为key的元素从头到尾与表中元素进行比较，如果中间存在关键字为key的元素，则返回成功；否则，则查找失败</li></ul></li><li>二分查找：<ul><li>时间复杂度：O(log2n)</li><li>前提：有序数列</li></ul></li><li>散列表：<ul><li>冲突的解决方法：当计算的存储地址有冲突的时候，继续查找下一个地址(散列函数 h=key%p)<ul><li>线性探测法</li><li>伪随机数法</li></ul></li></ul></li></ul><h3 id="排序"><a href="#排序" class="headerlink" title="排序"></a>排序</h3><ol><li><p>排序的概念</p><ul><li>稳定与不稳定排序</li><li>内排序与外排序</li></ul></li><li><p>排序方法分类</p><ul><li>插入类排序（直接插入、希尔排序）</li><li>交换类排序（冒泡排序、快速排序）</li><li>选择类排序（简单选择排序、堆排序）</li><li>归并排序</li><li>基数排序</li></ul></li><li><p>直接插入排序</p><ul><li>将一个元素插入到有序数组中</li></ul></li><li><p>希尔排序</p><ul><li>分组插入</li></ul></li><li><p>直接选择排序</p><ul><li>每次选择出最小的与当前位置交换</li></ul></li><li><p>堆排序（Heap）</p><ul><li>特点<br>1）完全二叉树<br>2）heap中存储的值是偏序</li></ul></li></ol><ul><li>小顶堆（小根堆）：子节点都比父节点大<ul><li>大顶堆（大根堆）：子节点都比父节点小</li></ul></li></ul><ol start="7"><li>冒泡排序</li><li>快速排序<ul><li>分治法</li></ul></li><li>归并排序</li><li>基数排序<ul><li>按照个位、十位、百位 区分出来排序</li></ul></li></ol><p><img src="/img/%E8%BD%AF%E8%80%83/Snipaste_2022-09-21_16-13-54.png" alt="Snipaste_2022-09-21_16-13-54.png"></p>]]></content>
     
     
     <categories>
@@ -64,7 +977,7 @@
     <link href="/2022/09/14/2022-09-14-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/"/>
     <url>/2022/09/14/2022-09-14-%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/</url>
     
-    <content type="html"><![CDATA[<h3 id="IP地址与子网划分"><a href="#IP地址与子网划分" class="headerlink" title="IP地址与子网划分"></a>IP地址与子网划分</h3><ol><li>A类 B类 C类 D类</li></ol><figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs basic"><span class="hljs-number">0.0</span>.<span class="hljs-number">0.0</span> <br><span class="hljs-symbol">00000000 </span><span class="hljs-number">00000000</span> <span class="hljs-number">0000000</span> <span class="hljs-number">00000000</span><br><span class="hljs-number">255.255</span>.<span class="hljs-number">255.255</span><br><span class="hljs-symbol">11111111 </span><span class="hljs-number">11111111</span> <span class="hljs-number">11111111</span> <span class="hljs-number">11111111</span><br></code></pre></td></tr></table></figure><p>A类 首位标志位    0-127<br>B类 前两位标志位    127-191<br>C类 前三位标志位    192-223<br>D类 前四位标志位    224-239</p><ol start="2"><li><p>子网划分</p><ul><li>子网掩码</li><li>将一个网络划分成多个子网</li></ul></li></ol><p>IP地址 ：：={&lt;网络前缀&gt;,&lt;主机&gt;}<br>127.14.21.0/20</p><h3 id="特殊含义的IP地址"><a href="#特殊含义的IP地址" class="headerlink" title="特殊含义的IP地址"></a>特殊含义的IP地址</h3><ul><li><p>127网段（回播地址）</p></li><li><p>网络号全0地址（当前子网中的地址）</p></li><li><p>全1地址（本地子网的广播）</p></li><li><p>主机号全1地址（特定子网的广播）</p></li><li><p>10.0.0.1至10.255.255.254</p><p>172.16.0.1至172.31.255.254</p><p>192.168.0.1至192.168.255.254（局域网IP）</p></li><li><p>169.254.0.0（保留地址，用于DHCP失效 win）</p></li><li><p>0.0.0.0（保留地址，用于DHCP失效 linux）</p></li></ul><h3 id="IPv6"><a href="#IPv6" class="headerlink" title="IPv6"></a>IPv6</h3><p>为了解决IPv4地址不足问题</p><ol><li>单播地址</li><li>任播地址</li><li>组播地址</li></ol><h3 id="无线网"><a href="#无线网" class="headerlink" title="无线网"></a>无线网</h3><ol><li>无线局域网（WLAN,802.11,Wi-Fi）</li><li>无线城域网</li><li>无线广域网（WWAN 3G/4G/5G）</li><li>无线个人网（WPAN 蓝牙）</li></ol><h3 id="网络接入技术"><a href="#网络接入技术" class="headerlink" title="网络接入技术"></a>网络接入技术</h3><ol><li><p>有线接入（PSTN,DDN,ISDN,ADSL,HFC）</p></li><li><p>无线接入（WiFi，蓝牙，红外，WAPI）</p></li><li><p>3G/4G/5G（WCDMA,CDMA2000,TD-SCDMA中国移动）</p><p>LTE 4G 分为TDD时分，FDD频分</p></li></ol><h3 id="HTML标签"><a href="#HTML标签" class="headerlink" title="HTML标签"></a>HTML标签</h3><table><thead><tr><th align="center"><a></th><th align="center">锚点</th></tr></thead><tbody><tr><td align="center"><b></td><td align="center">粗体</td></tr><tr><td align="center"><body></td><td align="center">主体</td></tr><tr><td align="center"><button></td><td align="center">按钮</td></tr><tr><td align="center"><center></td><td align="center">居中</td></tr><tr><td align="center"><col></td><td align="center">定义表格一个或多个列属性</td></tr><tr><td align="center"><font></td><td align="center">字体属性</td></tr><tr><td align="center"><form></td><td align="center">表单</td></tr><tr><td align="center"><frame></td><td align="center">框架窗口</td></tr><tr><td align="center"><h1></td><td align="center">一级标题</td></tr><tr><td align="center"><hr></td><td align="center">水平线</td></tr><tr><td align="center"><html></td><td align="center">html文档</td></tr><tr><td align="center"><img></td><td align="center">图片</td></tr><tr><td align="center"><p></td><td align="center">段落</td></tr><tr><td align="center"><script></td><td align="center">脚本</td></tr><tr><td align="center"><strong></td><td align="center">强调文本</td></tr><tr><td align="center"><table></td><td align="center">表格</td></tr><tr><td align="center"><td></td><td align="center">表格单元</td></tr><tr><td align="center"><tr></td><td align="center">表格行</td></tr><tr><td align="center"><title></td><td align="center">标题</td></tr></tbody></table>]]></content>
+    <content type="html"><![CDATA[<h3 id="IP地址与子网划分"><a href="#IP地址与子网划分" class="headerlink" title="IP地址与子网划分"></a>IP地址与子网划分</h3><ol><li>A类 B类 C类 D类</li></ol><figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs basic"><span class="hljs-number">0.0</span>.<span class="hljs-number">0.0</span> <br><span class="hljs-symbol">00000000 </span><span class="hljs-number">00000000</span> <span class="hljs-number">0000000</span> <span class="hljs-number">00000000</span><br><span class="hljs-number">255.255</span>.<span class="hljs-number">255.255</span><br><span class="hljs-symbol">11111111 </span><span class="hljs-number">11111111</span> <span class="hljs-number">11111111</span> <span class="hljs-number">11111111</span><br></code></pre></td></tr></table></figure><p>A类 首位标志位    0-127<br>B类 前两位标志位    127-191<br>C类 前三位标志位    192-223<br>D类 前四位标志位    224-239</p><ol start="2"><li><p>子网划分</p><ul><li>子网掩码</li><li>将一个网络划分成多个子网</li></ul></li></ol><p>IP地址 ：：={&lt;网络前缀&gt;,&lt;主机&gt;}<br>127.14.21.0/20</p><h3 id="特殊含义的IP地址"><a href="#特殊含义的IP地址" class="headerlink" title="特殊含义的IP地址"></a>特殊含义的IP地址</h3><ul><li><p>127网段（回播地址）</p></li><li><p>网络号全0地址（当前子网中的地址）</p></li><li><p>全1地址（本地子网的广播）</p></li><li><p>主机号全1地址（特定子网的广播）</p></li><li><p>10.0.0.1至10.255.255.254</p><p>172.16.0.1至172.31.255.254</p><p>192.168.0.1至192.168.255.254（局域网IP）</p></li><li><p>169.254.0.0（保留地址，用于DHCP失效 win）</p></li><li><p>0.0.0.0（保留地址，用于DHCP失效 linux）</p></li></ul><h3 id="IPv6"><a href="#IPv6" class="headerlink" title="IPv6"></a>IPv6</h3><p>为了解决IPv4地址不足问题</p><ol><li>单播地址</li><li>任播地址</li><li>组播地址</li></ol><h3 id="无线网"><a href="#无线网" class="headerlink" title="无线网"></a>无线网</h3><ol><li>无线局域网（WLAN,802.11,Wi-Fi）</li><li>无线城域网</li><li>无线广域网（WWAN 3G/4G/5G）</li><li>无线个人网（WPAN 蓝牙）</li></ol><h3 id="网络接入技术"><a href="#网络接入技术" class="headerlink" title="网络接入技术"></a>网络接入技术</h3><ol><li><p>有线接入（PSTN,DDN,ISDN,ADSL,HFC）</p></li><li><p>无线接入（WiFi，蓝牙，红外，WAPI）</p></li><li><p>3G/4G/5G（WCDMA,CDMA2000,TD-SCDMA中国移动）</p><p>LTE 4G 分为TDD时分，FDD频分</p></li></ol><h3 id="HTML标签"><a href="#HTML标签" class="headerlink" title="HTML标签"></a>HTML标签</h3><table><thead><tr><th align="center">&lt;a&gt;</th><th align="center">锚点</th></tr></thead><tbody><tr><td align="center">&lt;b&gt;</td><td align="center">粗体</td></tr><tr><td align="center">&lt;body&gt;</td><td align="center">主体</td></tr><tr><td align="center">&lt;button&gt;</td><td align="center">按钮</td></tr><tr><td align="center">&lt;center&gt;</td><td align="center">居中</td></tr><tr><td align="center">&lt;col&gt;</td><td align="center">定义表格一个或多个列属性</td></tr><tr><td align="center">&lt;font&gt;</td><td align="center">字体属性</td></tr><tr><td align="center">&lt;form&gt;</td><td align="center">表单</td></tr><tr><td align="center">&lt;frame&gt;</td><td align="center">框架窗口</td></tr><tr><td align="center">&lt;h1&gt;</td><td align="center">一级标题</td></tr><tr><td align="center">&lt;hr&gt;</td><td align="center">水平线</td></tr><tr><td align="center">&lt;html&gt;</td><td align="center">html文档</td></tr><tr><td align="center">&lt;img&gt;</td><td align="center">图片</td></tr><tr><td align="center">&lt;p&gt;</td><td align="center">段落</td></tr><tr><td align="center">&lt;script&gt;</td><td align="center">脚本</td></tr><tr><td align="center">&lt;strong&gt;</td><td align="center">强调文本</td></tr><tr><td align="center">&lt;table&gt;</td><td align="center">表格</td></tr><tr><td align="center">&lt;td&gt;</td><td align="center">表格单元</td></tr><tr><td align="center">&lt;tr&gt;</td><td align="center">表格行</td></tr><tr><td align="center">&lt;title&gt;</td><td align="center">标题</td></tr></tbody></table>]]></content>
     
     
     <categories>
@@ -79,6 +992,31 @@
       <tag>软件设计师【软考】</tag>
       
       <tag>计算机网络</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Go源码阅读</title>
+    <link href="/2022/09/13/Go%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/"/>
+    <url>/2022/09/13/Go%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/</url>
+    
+    <content type="html"><![CDATA[<p>Go 源码阅读<br>fmt：</p><p>rand:</p><p>​    Top Function level 简单思路阅读 未深究数据 只阅读了核心思想</p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Go</tag>
       
     </tags>
     
@@ -117,31 +1055,6 @@
     <tags>
       
       <tag>Git</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>Go源码阅读</title>
-    <link href="/2022/09/13/Go%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/"/>
-    <url>/2022/09/13/Go%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/</url>
-    
-    <content type="html"><![CDATA[<p>Go 源码阅读<br>fmt：</p><p>rand:</p><p>​    Top Function level 简单思路阅读 未深究数据 只阅读了核心思想</p>]]></content>
-    
-    
-    <categories>
-      
-      <category>学习【资料整理记录】</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>Go</tag>
       
     </tags>
     
@@ -217,33 +1130,6 @@
     <tags>
       
       <tag>文件整理</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>JDK的安装与环境配置</title>
-    <link href="/2022/02/27/JDK%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/"/>
-    <url>/2022/02/27/JDK%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/</url>
-    
-    <content type="html"><![CDATA[<ul><li>下载JDK安装包<br>首先到Oracle官网下载，链接: <a href="https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html</a></li></ul><p>需要勾选同意，然后选择自己电脑系统的版本下载。<br>ps:右键我的电脑，属性，查看系统类型。x64是64位，x86是32位。</p><p>下载完成后，双击下载的安装包，采用傻瓜式安装，一路NEXT即可。<br>ps：注意安装路径可以设置在除C盘外的其他盘，例如：D:\Java\jdk-8u181-windows-x64<br>另外，安装路径不要使用中文命名，否则会发生未知错误（第一次装的时候就被坑死了）</p><ul><li>配置JDK的环境变量<br>右键，我的电脑，属性，高级系统设置，高级，环境变量</li></ul><p>找到系统变量中的path，点击编辑，在最前边添加自己的JDK路径信息，然后点击确定。<br>ps：路径信息到bin文件夹下就可以，因为bin文件夹存放的是java的.exe命令，路径末尾不要忘记添加“;”</p><p>然后就可以windows键+R，运行cmd，进入DOS命令行。<br>执行java -version命令，如下图，就表示java环境变量配置成功了。</p><p>ps:新配置好的环境变量，必须重新打开DOS窗口才能正常运行，java -version中，java后边需要留有一个空格</p><p>jdk重装时候遇到的坑0.0，没卸载 干净，这位大哥的博客有解决方案<br><a href="https://blog.csdn.net/ldld1717/article/details/52144760">https://blog.csdn.net/ldld1717/article/details/52144760</a></p>]]></content>
-    
-    
-    <categories>
-      
-      <category>学习【资料整理记录】</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>Java</tag>
-      
-      <tag>JDK</tag>
       
     </tags>
     
@@ -410,31 +1296,6 @@
   
   
   <entry>
-    <title>linuxCmd</title>
-    <link href="/2020/11/25/linuxCmd/"/>
-    <url>/2020/11/25/linuxCmd/</url>
-    
-    <content type="html"><![CDATA[<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">nohup</span> ./game_private_server -Config=./config/game_config_mjjxhzzm_61.cfg &gt;&gt; <span class="hljs-built_in">log</span>/game_private_server_mjjxhzzm_61.<span class="hljs-built_in">log</span> 2&gt;&amp;1 &amp;<br><br><span class="hljs-built_in">nohup</span> ./game_private_server -Config=./config/game_config_mjhnwxd_61.cfg &gt;&gt; <span class="hljs-built_in">log</span>/game_private_server_mjhnwxdd_61.<span class="hljs-built_in">log</span> 2&gt;&amp;1 &amp;<br><br><span class="hljs-built_in">nohup</span> ./game_private_server -Config=./config/game_config_mjhnayhx_88.cfg mjhnayhx_88 &gt;&gt; <span class="hljs-built_in">log</span>/game_private_server_mjhnayhx_88.<span class="hljs-built_in">log</span> 2&gt;&amp;1 &amp;<br></code></pre></td></tr></table></figure><p>redis 添加测试</p><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">auth</span> qwe123!@<span class="hljs-comment">#</span><br><span class="hljs-literal">select</span> <span class="hljs-number">9</span><br>hset haunters id <span class="hljs-number">1</span>，<br>HEXISTS haunters<br></code></pre></td></tr></table></figure><p>Redis 设置密码</p><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs routeros">config <span class="hljs-built_in">set</span> requirepass password<br>auth password<span class="hljs-built_in"></span><br><span class="hljs-built_in">config </span><span class="hljs-built_in">get</span> requirepass<br></code></pre></td></tr></table></figure><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs routeros">cmd:<br> <span class="hljs-built_in"> config </span><span class="hljs-built_in">set</span> requirepass qwe123!@#<br>  auth qwe123!@#<br> <span class="hljs-built_in"> config </span><span class="hljs-built_in">get</span> requirepass<br></code></pre></td></tr></table></figure><p>optional string PassWord = 3;        // 密码</p><p>  ./protoc.exe –go_out=. ./*.proto</p><p>  “notice#body”</p><p>  624691</p><p>– mysql开启事件命令</p><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs gams">show <span class="hljs-keyword">variables</span> like <span class="hljs-comment">&#x27;%sche%&#x27;</span>;<br><br><span class="hljs-keyword">set</span> global <span class="hljs-comment">event_scheduler =1</span><br></code></pre></td></tr></table></figure><p>天天 userid 406570</p><p>// ssh连接服务器</p><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">sudo</span> ssh root@<span class="hljs-number">39.100.68.248</span><br></code></pre></td></tr></table></figure><p>// 上传文件到服务器</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">sudo scp <span class="hljs-regexp">/Users/</span>xinyi-jin<span class="hljs-regexp">/Desktop/</span>test.txt root@<span class="hljs-number">39.100</span>.<span class="hljs-number">68.248</span>:<span class="hljs-regexp">/root/</span>server/<br></code></pre></td></tr></table></figure><p>// 上传文件到服务器，不会影响当前正在运行的程序</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">sudo rsync -av <span class="hljs-regexp">/Users/</span>xinyi-jin<span class="hljs-regexp">/go/</span>src<span class="hljs-regexp">/jxserver/</span>bin<span class="hljs-regexp">/xiangque/</span>* root@<span class="hljs-number">39.100</span>.<span class="hljs-number">68.248</span>:<span class="hljs-regexp">/root/</span>server<br></code></pre></td></tr></table></figure><figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs elixir">cygwin错误 <br>原因：ssh.exe可能会与git下边的版本冲突<br>解决办法：可使用-e参数指定ssh.exe<br><br>rsync -av -e <span class="hljs-symbol">D:</span>\soft\cwrsync_6.<span class="hljs-number">2.4_</span>x64_free\bin\ssh.exe robot/robot root<span class="hljs-variable">@47</span>.<span class="hljs-number">107.37</span>.<span class="hljs-number">120</span><span class="hljs-symbol">:/root/%</span><span class="hljs-number">1</span>/robot/<br></code></pre></td></tr></table></figure><p>// mac 交叉编译linux</p><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs routeros"><span class="hljs-attribute">CGO_ENABLED</span>=0 <span class="hljs-attribute">GOOS</span>=linux <span class="hljs-attribute">GOARCH</span>=amd64 go build gripper.go<br></code></pre></td></tr></table></figure><p>Gitshell中输入如下命令解决：</p><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs angelscript">git config --global core.<span class="hljs-built_in">auto</span>crlf <span class="hljs-literal">false</span><br></code></pre></td></tr></table></figure><p>Go 自动生成测试文件</p><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs vim">gotests -<span class="hljs-keyword">only</span> IntToRoman -<span class="hljs-keyword">w</span> intToRoman.<span class="hljs-keyword">go</span><br></code></pre></td></tr></table></figure><p>WinSCP命令</p><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli"><span class="hljs-string">./WinSCP.com</span>   进入winscp命令行<br>open sftp:<span class="hljs-string">//root</span>@47.107.37.120 -privatekey=C:\Users\Administrator\<span class="hljs-string">.ssh</span>\id_rsa.ppk   连接远端<br></code></pre></td></tr></table></figure>]]></content>
-    
-    
-    <categories>
-      
-      <category>学习【资料整理记录】</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>服务部署</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
     <title>windows安装软件</title>
     <link href="/2020/11/25/windows_soft/"/>
     <url>/2020/11/25/windows_soft/</url>
@@ -454,6 +1315,31 @@
       <tag>Windows</tag>
       
       <tag>应用软件</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>linuxCmd</title>
+    <link href="/2020/11/25/linuxCmd/"/>
+    <url>/2020/11/25/linuxCmd/</url>
+    
+    <content type="html"><![CDATA[<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">nohup</span> ./game_private_server -Config=./config/game_config_mjjxhzzm_61.cfg &gt;&gt; <span class="hljs-built_in">log</span>/game_private_server_mjjxhzzm_61.<span class="hljs-built_in">log</span> 2&gt;&amp;1 &amp;<br><br><span class="hljs-built_in">nohup</span> ./game_private_server -Config=./config/game_config_mjhnwxd_61.cfg &gt;&gt; <span class="hljs-built_in">log</span>/game_private_server_mjhnwxdd_61.<span class="hljs-built_in">log</span> 2&gt;&amp;1 &amp;<br><br><span class="hljs-built_in">nohup</span> ./game_private_server -Config=./config/game_config_mjhnayhx_88.cfg mjhnayhx_88 &gt;&gt; <span class="hljs-built_in">log</span>/game_private_server_mjhnayhx_88.<span class="hljs-built_in">log</span> 2&gt;&amp;1 &amp;<br></code></pre></td></tr></table></figure><p>redis 添加测试</p><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">auth</span> qwe123!@<span class="hljs-comment">#</span><br><span class="hljs-literal">select</span> <span class="hljs-number">9</span><br>hset haunters id <span class="hljs-number">1</span>，<br>HEXISTS haunters<br></code></pre></td></tr></table></figure><p>Redis 设置密码</p><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs routeros">config <span class="hljs-built_in">set</span> requirepass password<br>auth password<span class="hljs-built_in"></span><br><span class="hljs-built_in">config </span><span class="hljs-built_in">get</span> requirepass<br></code></pre></td></tr></table></figure><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs routeros">cmd:<br> <span class="hljs-built_in"> config </span><span class="hljs-built_in">set</span> requirepass qwe123!@#<br>  auth qwe123!@#<br> <span class="hljs-built_in"> config </span><span class="hljs-built_in">get</span> requirepass<br></code></pre></td></tr></table></figure><p>optional string PassWord = 3;        // 密码</p><p>  ./protoc.exe –go_out=. ./*.proto</p><p>  “notice#body”</p><p>  624691</p><p>– mysql开启事件命令</p><figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs gams">show <span class="hljs-keyword">variables</span> like <span class="hljs-comment">&#x27;%sche%&#x27;</span>;<br><br><span class="hljs-keyword">set</span> global <span class="hljs-comment">event_scheduler =1</span><br></code></pre></td></tr></table></figure><p>天天 userid 406570</p><p>// ssh连接服务器</p><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">sudo</span> ssh root@<span class="hljs-number">39.100.68.248</span><br></code></pre></td></tr></table></figure><p>// 上传文件到服务器</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">sudo scp <span class="hljs-regexp">/Users/</span>xinyi-jin<span class="hljs-regexp">/Desktop/</span>test.txt root@<span class="hljs-number">39.100</span>.<span class="hljs-number">68.248</span>:<span class="hljs-regexp">/root/</span>server/<br></code></pre></td></tr></table></figure><p>// 上传文件到服务器，不会影响当前正在运行的程序</p><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">sudo rsync -av <span class="hljs-regexp">/Users/</span>xinyi-jin<span class="hljs-regexp">/go/</span>src<span class="hljs-regexp">/jxserver/</span>bin<span class="hljs-regexp">/xiangque/</span>* root@<span class="hljs-number">39.100</span>.<span class="hljs-number">68.248</span>:<span class="hljs-regexp">/root/</span>server<br></code></pre></td></tr></table></figure><figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs elixir">cygwin错误 <br>原因：ssh.exe可能会与git下边的版本冲突<br>解决办法：可使用-e参数指定ssh.exe<br><br>rsync -av -e <span class="hljs-symbol">D:</span>\soft\cwrsync_6.<span class="hljs-number">2.4_</span>x64_free\bin\ssh.exe robot/robot root<span class="hljs-variable">@47</span>.<span class="hljs-number">107.37</span>.<span class="hljs-number">120</span><span class="hljs-symbol">:/root/%</span><span class="hljs-number">1</span>/robot/<br></code></pre></td></tr></table></figure><p>// mac 交叉编译linux</p><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs routeros"><span class="hljs-attribute">CGO_ENABLED</span>=0 <span class="hljs-attribute">GOOS</span>=linux <span class="hljs-attribute">GOARCH</span>=amd64 go build gripper.go<br></code></pre></td></tr></table></figure><p>Gitshell中输入如下命令解决：</p><figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs angelscript">git config --global core.<span class="hljs-built_in">auto</span>crlf <span class="hljs-literal">false</span><br></code></pre></td></tr></table></figure><p>Go 自动生成测试文件</p><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs vim">gotests -<span class="hljs-keyword">only</span> IntToRoman -<span class="hljs-keyword">w</span> intToRoman.<span class="hljs-keyword">go</span><br></code></pre></td></tr></table></figure><p>WinSCP命令</p><figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli"><span class="hljs-string">./WinSCP.com</span>   进入winscp命令行<br>open sftp:<span class="hljs-string">//root</span>@47.107.37.120 -privatekey=C:\Users\Administrator\<span class="hljs-string">.ssh</span>\id_rsa.ppk   连接远端<br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>服务部署</tag>
       
     </tags>
     
@@ -839,6 +1725,33 @@
     <tags>
       
       <tag>Html</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>JDK的安装与环境配置</title>
+    <link href="/2019/02/27/JDK%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/"/>
+    <url>/2019/02/27/JDK%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/</url>
+    
+    <content type="html"><![CDATA[<ul><li>下载JDK安装包<br>首先到Oracle官网下载，链接: <a href="https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html</a></li></ul><p>需要勾选同意，然后选择自己电脑系统的版本下载。<br>ps:右键我的电脑，属性，查看系统类型。x64是64位，x86是32位。</p><p>下载完成后，双击下载的安装包，采用傻瓜式安装，一路NEXT即可。<br>ps：注意安装路径可以设置在除C盘外的其他盘，例如：D:\Java\jdk-8u181-windows-x64<br>另外，安装路径不要使用中文命名，否则会发生未知错误（第一次装的时候就被坑死了）</p><ul><li>配置JDK的环境变量<br>右键，我的电脑，属性，高级系统设置，高级，环境变量</li></ul><p>找到系统变量中的path，点击编辑，在最前边添加自己的JDK路径信息，然后点击确定。<br>ps：路径信息到bin文件夹下就可以，因为bin文件夹存放的是java的.exe命令，路径末尾不要忘记添加“;”</p><p>然后就可以windows键+R，运行cmd，进入DOS命令行。<br>执行java -version命令，如下图，就表示java环境变量配置成功了。</p><p>ps:新配置好的环境变量，必须重新打开DOS窗口才能正常运行，java -version中，java后边需要留有一个空格</p><p>jdk重装时候遇到的坑0.0，没卸载 干净，这位大哥的博客有解决方案<br><a href="https://blog.csdn.net/ldld1717/article/details/52144760">https://blog.csdn.net/ldld1717/article/details/52144760</a></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>学习【资料整理记录】</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Java</tag>
+      
+      <tag>JDK</tag>
       
     </tags>
     
