@@ -59,10 +59,10 @@ services:
       - 2380:2380
     restart: always
 
-networks:
+<!-- networks:
   default:
     name: etcd-tier
-    driver: bridge
+    driver: bridge -->
 ```
 5. 使用docker-compse 读取配置文件运行初始化容器
 cd /data/containers/etcd

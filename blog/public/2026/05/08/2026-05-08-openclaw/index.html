@@ -16,25 +16,25 @@
   <meta name="author" content="maomao">
   <meta name="keywords" content="">
   
-    <meta name="description" content="下载JDK安装包首先到Oracle官网下载，链接: https:&#x2F;&#x2F;www.oracle.com&#x2F;technetwork&#x2F;java&#x2F;javase&#x2F;downloads&#x2F;jdk8-downloads-2133151.html  需要勾选同意，然后选择自己电脑系统的版本下载。ps:右键我的电脑，属性，查看系统类型。x64是64位，x86是32位。 下载完成后，双击下载的安装包，采用傻瓜式安装，一路NE">
+    <meta name="description" content="使用容器部署openclaw服务，体验一把！ docker容器环境安装&#96;&#96;&#x2F;&#x2F; 拉取ubuntu22.04docker pull ubuntu:22.04  &#x2F;&#x2F; 运行容器docker run -itd –name&#x3D;openclaw –network host ubuntu:22.04 &#x2F;bin&#x2F;bash &#x2F;&#x2F; 进入容器内部docker exec -it openclaw bash&#96;&#96;  安装op">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JDK的安装与环境配置">
-<meta property="og:url" content="http://example.com/2022/02/27/JDK%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/index.html">
+<meta property="og:title" content="openclaw">
+<meta property="og:url" content="http://example.com/2026/05/08/2026-05-08-openclaw/index.html">
 <meta property="og:site_name" content="maomao&#39;s blog">
-<meta property="og:description" content="下载JDK安装包首先到Oracle官网下载，链接: https:&#x2F;&#x2F;www.oracle.com&#x2F;technetwork&#x2F;java&#x2F;javase&#x2F;downloads&#x2F;jdk8-downloads-2133151.html  需要勾选同意，然后选择自己电脑系统的版本下载。ps:右键我的电脑，属性，查看系统类型。x64是64位，x86是32位。 下载完成后，双击下载的安装包，采用傻瓜式安装，一路NE">
+<meta property="og:description" content="使用容器部署openclaw服务，体验一把！ docker容器环境安装&#96;&#96;&#x2F;&#x2F; 拉取ubuntu22.04docker pull ubuntu:22.04  &#x2F;&#x2F; 运行容器docker run -itd –name&#x3D;openclaw –network host ubuntu:22.04 &#x2F;bin&#x2F;bash &#x2F;&#x2F; 进入容器内部docker exec -it openclaw bash&#96;&#96;  安装op">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-02-27T08:45:00.000Z">
-<meta property="article:modified_time" content="2022-09-13T09:35:16.000Z">
+<meta property="article:published_time" content="2026-05-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-08T16:00:00.000Z">
 <meta property="article:author" content="maomao">
-<meta property="article:tag" content="Java">
-<meta property="article:tag" content="JDK">
+<meta property="article:tag" content="Docker">
+<meta property="article:tag" content="ubuntu">
 <meta name="twitter:card" content="summary_large_image">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>JDK的安装与环境配置 - maomao&#39;s blog</title>
+  <title>openclaw - maomao&#39;s blog</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -211,7 +211,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="JDK的安装与环境配置"></span>
+            <span id="subtitle" data-typed-text="openclaw"></span>
           
         </div>
 
@@ -227,8 +227,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2022-02-27 16:45" pubdate>
-          2022-02-27 下午
+        <time datetime="2026-05-08 16:00" pubdate>
+          2026-05-08 下午
         </time>
       </span>
     
@@ -239,7 +239,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          643 字
+          614 字
         
       </span>
     
@@ -300,23 +300,41 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">JDK的安装与环境配置</h1>
+            <h1 style="display: none">openclaw</h1>
             
             
               <div class="markdown-body">
                 
-                <ul>
-<li>下载JDK安装包<br>首先到Oracle官网下载，链接: <a target="_blank" rel="noopener" href="https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html</a></li>
-</ul>
-<p>需要勾选同意，然后选择自己电脑系统的版本下载。<br>ps:右键我的电脑，属性，查看系统类型。x64是64位，x86是32位。</p>
-<p>下载完成后，双击下载的安装包，采用傻瓜式安装，一路NEXT即可。<br>ps：注意安装路径可以设置在除C盘外的其他盘，例如：D:\Java\jdk-8u181-windows-x64<br>另外，安装路径不要使用中文命名，否则会发生未知错误（第一次装的时候就被坑死了）</p>
+                <h2 id="使用容器部署openclaw服务，体验一把！"><a href="#使用容器部署openclaw服务，体验一把！" class="headerlink" title="使用容器部署openclaw服务，体验一把！"></a>使用容器部署openclaw服务，体验一把！</h2><ol>
+<li>docker容器环境安装<br>``<br>// 拉取ubuntu22.04<br>docker pull ubuntu:22.04</li>
+</ol>
+<p>// 运行容器<br>docker run -itd –name=openclaw –network host ubuntu:22.04 /bin/bash</p>
+<p>// 进入容器内部<br>docker exec -it openclaw bash<br>``</p>
+<ol start="2">
+<li>安装openclaw<br>``<h1 id="安装-Node-js-22-x-版本"><a href="#安装-Node-js-22-x-版本" class="headerlink" title="安装 Node.js 22.x 版本"></a>安装 Node.js 22.x 版本</h1>curl -fsSL <a target="_blank" rel="noopener" href="https://deb.nodesource.com/setup_22.x">https://deb.nodesource.com/setup_22.x</a> | sudo -E bash -<br>sudo apt-get install -y nodejs</li>
+</ol>
+<p>curl -fsSL <a target="_blank" rel="noopener" href="https://openclaw.ai/install.sh">https://openclaw.ai/install.sh</a> | bash<br>``</p>
+<p>遇到问题：<br>配置QQ bot;</p>
 <ul>
-<li>配置JDK的环境变量<br>右键，我的电脑，属性，高级系统设置，高级，环境变量</li>
+<li>需要到QQ开放中心 申请openclaw bot 获得key和secret</li>
 </ul>
-<p>找到系统变量中的path，点击编辑，在最前边添加自己的JDK路径信息，然后点击确定。<br>ps：路径信息到bin文件夹下就可以，因为bin文件夹存放的是java的.exe命令，路径末尾不要忘记添加“;”</p>
-<p>然后就可以windows键+R，运行cmd，进入DOS命令行。<br>执行java -version命令，如下图，就表示java环境变量配置成功了。</p>
-<p>ps:新配置好的环境变量，必须重新打开DOS窗口才能正常运行，java -version中，java后边需要留有一个空格</p>
-<p>jdk重装时候遇到的坑0.0，没卸载 干净，这位大哥的博客有解决方案<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/ldld1717/article/details/52144760">https://blog.csdn.net/ldld1717/article/details/52144760</a></p>
+<p>模型选择</p>
+<ul>
+<li>选择Z-AI 智普GLM 需要到智普 注册申请API key</li>
+</ul>
+<p>有了以上内容 便可以配置QQ bot 接入openclaw服务；</p>
+<p>``<br>容器内 需要直接启动服务</p>
+<!-- 直接启动服务 -->
+<p>openclaw gateway</p>
+<!-- 后台启动服务 -->
+<p>nohup openclaw gateway &gt; /root/openclaw.log 2&gt;&amp;1 &amp;<br>``</p>
+<p>``</p>
+<!-- 打开交互式面板 -->
+<p>openclaw tui</p>
+<!-- 打开网页控制面板 -->
+<p>openclaw dashboard</p>
+<!-- 设置QQ bot -->
+<p>openclaw channels add –channel qqbot –token “1903978674:secret”<br>``</p>
 
                 
               </div>
@@ -350,9 +368,9 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Java/">#Java</a>
+        <a href="/tags/Docker/">#Docker</a>
       
-        <a href="/tags/JDK/">#JDK</a>
+        <a href="/tags/ubuntu/">#ubuntu</a>
       
     </div>
   
@@ -366,18 +384,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/03/27/%E6%96%87%E4%BB%B6%E6%95%B4%E7%90%86/" title="文件整理">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">文件整理</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/10/12/%E8%87%AA%E5%AD%A6%E4%B9%A0%E5%86%85%E5%AE%B9/" title="自学习内容">
-                        <span class="hidden-mobile">自学习内容</span>
+                      <a href="/2026/04/23/2026-04-23-%E4%BD%BF%E7%94%A8cloudreve%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E7%BD%91%E7%9B%98%E6%9C%8D%E5%8A%A1/" title="使用cloudreve搭建个人网盘服务">
+                        <span class="hidden-mobile">使用cloudreve搭建个人网盘服务</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
